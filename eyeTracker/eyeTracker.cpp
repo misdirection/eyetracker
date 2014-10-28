@@ -42,7 +42,7 @@ int main( int argc, const char** argv )
     ThreadData *datas = new ThreadData();
 	webcam = new ThreadCapturing(windowName,captureDevice, datas->getThreadId());
     webcam->StartCapture();
-	
+	cout << "This is a test" << endl;
 
 
     system("pause");
