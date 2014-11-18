@@ -48,7 +48,7 @@ void ThreadCapturing::Run()
 		_captureDevice >> frame; // get a new frame from camera
 		imshow(_windowName, frame); //displays an image in the specified window
 		cout << "fps:" << framesPerSeconds.getFPS() << endl;
-		//if(waitKey(30) >= 0) break;
+		if(waitKey(30) >= 0) break;
 	}
 }
 // stops the capturing
