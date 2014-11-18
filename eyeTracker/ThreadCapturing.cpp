@@ -26,8 +26,6 @@ bool ThreadCapturing::StartCapture()
 
 unsigned long __stdcall ThreadCapturing::CaptureThread(void* instance)
 {
-	// seed the rng with current tick count and thread id
-	srand(GetTickCount() + GetCurrentThreadId());
 	// forward thread to Capture function
 	ThreadCapturing *pThis = (ThreadCapturing *)instance;
 	pThis->Run();

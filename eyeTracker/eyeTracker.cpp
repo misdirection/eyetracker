@@ -38,14 +38,16 @@ int main( int argc, const char** argv )
     if( !captureDevice.open(0)){ printf("none\n");return -1; } //checks if a device is found
     ThreadCapturing *webcam;
     char windowName[256];
-    sprintf(windowName, "Face Tracker Window webcam");
+    sprintf_s(windowName, "Face Tracker Window webcam");
     ThreadData *datas = new ThreadData();
 	webcam = new ThreadCapturing(windowName,captureDevice, datas->getThreadId());
     webcam->StartCapture();
-	
+	while(int key = cvWaitKey(0) != 0x1b)
+	{
+
+	}
 	
 
-
-    system("pause");
-    return 0;
+//    system("pause");
+    return (0);
 }
