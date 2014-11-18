@@ -7,7 +7,7 @@
 eyeTracker::eyeTracker(void){}
 eyeTracker::~eyeTracker(void){}
 
-
+//counts attached devices and returns the amount of devices
 int getCountOfAttachedCaptureDevices()
 {
 	int number = 0;
@@ -35,14 +35,15 @@ int main( int argc, const char** argv )
     // get count of recognized cameras
     int count = getCountOfAttachedCaptureDevices();
     VideoCapture captureDevice;
-    if( !captureDevice.open(0)){ printf("none\n");system("PAUSE");return -1; }
+    if( !captureDevice.open(0)){ printf("none\n");return -1; } //checks if a device is found
     ThreadCapturing *webcam;
     char windowName[256];
     sprintf(windowName, "Face Tracker Window webcam");
     ThreadData *datas = new ThreadData();
 	webcam = new ThreadCapturing(windowName,captureDevice, datas->getThreadId());
     webcam->StartCapture();
-	cout << "This is a test" << endl;
+	
+	
 
 
     system("pause");

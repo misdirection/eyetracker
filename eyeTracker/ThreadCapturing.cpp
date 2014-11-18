@@ -11,7 +11,7 @@ ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice, D
 	strcpy_s(_windowName, windowName);
 }
 
-
+//starts a  Capturing by setting _running to true
 bool ThreadCapturing::StartCapture()
 {
 	_running = true;
@@ -34,7 +34,7 @@ unsigned long __stdcall ThreadCapturing::CaptureThread(void* instance)
 	return 0;
 }
 
-
+// main method of the ThreadCapturing which runs after the StartCapture
 void ThreadCapturing::Run()
 {
 	// test of  transfer to data thread only string here, but can be used with anything else
@@ -48,13 +48,12 @@ void ThreadCapturing::Run()
 	{
 		Mat frame;
 		_captureDevice >> frame; // get a new frame from camera
-		if(!frame.empty())
-			imshow(_windowName, frame);
+		imshow(_windowName, frame); //displays an image in the specified window
 		cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		if(waitKey(30) >= 0) break;
 	}
 }
-
+// stops the capturing
 void ThreadCapturing::StopCapture()
 {
 	if(!_running)   return;
@@ -62,6 +61,7 @@ void ThreadCapturing::StopCapture()
 	WaitForSingleObject(_hThread, 1000);
 }
 
+// return the ID of a thread
 DWORD ThreadCapturing::getThreadId()
 {
 	return _threadId;

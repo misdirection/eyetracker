@@ -4,7 +4,7 @@
 ThreadData::ThreadData(void) {StartThread();}
 ThreadData::~ThreadData(void){}
 
-
+//starts a thread by setting _running to true
 bool ThreadData::StartThread()
 {
 	_running = true;
@@ -27,7 +27,7 @@ unsigned long __stdcall ThreadData::DataThread(void* instance)
 	return 0;
 }
 
-
+//main method of the ThreadData, this is where the stuff happens
 void ThreadData::Run()
 {
 	MSG msg;
@@ -44,14 +44,14 @@ void ThreadData::Run()
 	*/
 }
 
-
+// stops a running thread
 void ThreadData::StopThread()
 {
 	if(!_running)   return;
 	_running = false;
 	WaitForSingleObject(_hThread, 1000);
 }
-
+//returns the thread-ID
 DWORD ThreadData::getThreadId()
 {
 	return _threadId;

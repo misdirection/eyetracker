@@ -9,22 +9,24 @@ fps::~fps(void)
 {
 }
 
-
+// sets _start to the beginning of the fps count
 void fps::setStart()
 {
 	_start=high_resolution_clock::now();
 }
 
+//returns start value of the time when the fps count starts
 high_resolution_clock::time_point const fps::getStart()
 {
 	return _start;
 }
-	
+
+// sets _end to the end of the fps count
 void fps::setEnd()
 {
 	_end=high_resolution_clock::now();
 }
-
+//returns _end value of the time when the fps count end
 high_resolution_clock::time_point const fps::getEnd()
 {
 	return _end;
