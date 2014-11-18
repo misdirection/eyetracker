@@ -47,7 +47,6 @@ int main( int argc, const char** argv )
 
 	}
 	
-// testlauf
 //    system("pause");
     return (0);
 }
