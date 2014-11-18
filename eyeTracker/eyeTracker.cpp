@@ -46,7 +46,7 @@ int main( int argc, const char** argv )
 	{
 
 	}
-	
+// shitty shitty
 //    system("pause");
     return (0);
 }
