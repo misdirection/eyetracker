@@ -41,3 +41,4 @@ double const fps::getFPS()
 	_start=high_resolution_clock::now();
 	return _framesPerSecond;
 }
+
