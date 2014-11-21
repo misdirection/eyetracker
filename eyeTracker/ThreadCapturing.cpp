@@ -2,7 +2,8 @@
 #include "fps.h"
 
 ThreadCapturing::ThreadCapturing(void){};
-ThreadCapturing::~ThreadCapturing(void){	
+ThreadCapturing::~ThreadCapturing(void){
+	destroyWindow(_windowName);
 	delete data;
 	data = nullptr;};
 ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice,int deviceNumber, DWORD dataThreadID) :
@@ -13,6 +14,7 @@ ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice,in
 	data=new dataPackage;
 	strcpy_s(_windowName, windowName);
 	_captureDevice.open(deviceNumber);
+	namedWindow(_windowName, CV_WINDOW_AUTOSIZE);
 }
 
 
@@ -36,7 +38,7 @@ void ThreadCapturing::Run()
 		_captureDevice >> frame; // get a new frame from camera
 		imshow(_windowName, frame); //displays an image in the specified window
 		cout << "fps:" << framesPerSeconds.getFPS() << endl;
-		if(waitKey(30) >= 0) break ;
+		//if(cvWaitKey(1) >= 0);
 	}
 
 }

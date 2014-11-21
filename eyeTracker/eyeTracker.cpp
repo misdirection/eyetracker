@@ -4,16 +4,19 @@
 #include "ThreadData.h"
 
 VideoCapture* captureDevice;
+// data thread
 ThreadData *datas;
+// capture threads in a map for easy access
 map<int,ThreadCapturing*> devices;
+
 
 eyeTracker::eyeTracker(void){}
 eyeTracker::~eyeTracker(void){}
 
 //counts attached devices and returns the amount of devices
-int getCountOfAttachedCaptureDevices()
+void getCountOfAttachedCaptureDevices()
 {
-	int number = 0;
+	int number=0;
 	while (true)
 	{
 		captureDevice->open(number);
@@ -23,59 +26,69 @@ int getCountOfAttachedCaptureDevices()
 		}
 		else
 		{
+			
 			devices[number]=nullptr;
 			number++;
 			captureDevice->release();
 		}
 	}
-	return number;
 }
 
 void switchDevices(int number)
 {
-	if (devices[number]==nullptr)
+	if (number<devices.size())
 	{
-	stringstream text;
-    text<< "web cam device " << number; 
-    string str1= text.str();
-	LPSTR s = const_cast<char *>(str1.c_str());
-	devices[number]=new ThreadCapturing(s,*captureDevice, number,datas->getThreadId());
-	devices[number]->Start();
-	}
-	else
-	{
-	devices[number]->Stop();
-	delete devices[number];
-	devices[number]=nullptr;
+		if (devices[number]==nullptr)
+		{
+			stringstream text;
+			text<< "web cam device " << number; 
+			string str1= text.str();
+			devices[number]=new ThreadCapturing(const_cast<char *>(str1.c_str()),*captureDevice, number,datas->getThreadId());
+			devices[number]->Start();
+		}
+		else
+		{
+			devices[number]->Stop();
+			delete devices[number];
+			devices[number]=nullptr;
+		}
 	}
 }
 int main( int argc, const char** argv ) 
 {
 	// get count of recognized cameras
-    captureDevice = new VideoCapture;
+	captureDevice = new VideoCapture;
 	datas = new ThreadData();
 	
-	int count = getCountOfAttachedCaptureDevices();
+	getCountOfAttachedCaptureDevices();
 	int number=-1;
-	if (count > 0) 
+	
+	if (devices.size() > 0) 
 	{
-		cout << "Available devices: " << count << endl << "Press number between 0 and " << count-1 << " to start first camera";
-		while(number<0 || number >=count)
+		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera";
+		while(number<0 || number >=devices.size() )
 		{
 		while(!_kbhit());
 		string temp; temp= getch(); number = atoi(temp.c_str());
 		}
 		switchDevices(number);
 	}
-	int key;
-	while((key = cvWaitKey(1)) != 0x1b)
+	char key;
+	
+while((key = cvWaitKey(0)) != 0x1b)
     {
+
 		switch(key)
         {
-			case '0': cout << "TEST";break;
-			case '1': cout << "TEST";break;
+			case '0': switchDevices(0); break;
+			case '1': switchDevices(1); break;
+			case '2': switchDevices(2); break;
+			case '3': switchDevices(3); break;
+			case '4': switchDevices(4); break;
+			case '5': switchDevices(5); break;
 		}
 	}
+	
 	//if( !captureDevice->open(0)){ printf("none\n");return -1; } //checks if a device is found
     
 	//ThreadCapturing *webcam;
