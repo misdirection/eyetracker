@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BaseDetection.h" />
     <ClInclude Include="eyeTracker.h" />
     <ClInclude Include="fps.h" />
     <ClInclude Include="Thread.h" />
@@ -156,6 +157,7 @@
     <ClInclude Include="ThreadData.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BaseDetection.cpp" />
     <ClCompile Include="eyeTracker.cpp" />
     <ClCompile Include="fps.cpp" />
     <ClCompile Include="Thread.cpp" />
