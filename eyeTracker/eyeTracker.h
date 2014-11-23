@@ -7,6 +7,7 @@
 using namespace std;
 using namespace cv;
 
+extern int xer;
 
 class eyeTracker
 {

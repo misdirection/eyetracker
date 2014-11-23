@@ -8,7 +8,7 @@ VideoCapture* captureDevice;
 ThreadData *datas;
 // capture threads in a map for easy access
 map<int,ThreadCapturing*> devices;
-
+int xer;
 
 eyeTracker::eyeTracker(void){}
 eyeTracker::~eyeTracker(void){}
@@ -58,8 +58,9 @@ int main( int argc, const char** argv )
 {
 	// get count of recognized cameras
 	captureDevice = new VideoCapture;
+	//allocation of data thread
 	datas = new ThreadData();
-	
+	xer=7;
 	getCountOfAttachedCaptureDevices();
 	int number=-1;
 	
@@ -104,5 +105,6 @@ while((key = cvWaitKey(0)) != 0x1b)
 	*/
     //delete captureDevice;
 	//captureDevice=nullptr;
+	cout << xer;
 	return (0);
 }

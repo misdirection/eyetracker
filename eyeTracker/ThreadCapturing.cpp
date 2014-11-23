@@ -34,6 +34,7 @@ void ThreadCapturing::Run()
 	fps framesPerSeconds;
 	while(_running)
 	{
+		xer=8;
 		Mat frame;
 		_captureDevice >> frame; // get a new frame from camera
 		imshow(_windowName, frame); //displays an image in the specified window
