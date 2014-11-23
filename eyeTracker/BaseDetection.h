@@ -1,8 +1,5 @@
 #pragma once
-#include "eyeTracker.h"
-
-
-
+#include "Thread.h"
 class BaseDetection
 {
 public:
@@ -18,7 +15,6 @@ public:
 	Mat BaseDetection::drawRect(Mat);
 
 private:
-
 	CascadeClassifier face_cascade, eye_cascade;
 	vector<cv::Rect> faces;
 };

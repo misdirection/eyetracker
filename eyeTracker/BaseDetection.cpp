@@ -1,5 +1,4 @@
 #include "BaseDetection.h"
-
 BaseDetection::BaseDetection()
 {
 	face_cascade.load("haarcascade_frontalface_alt2.xml");
@@ -14,7 +13,7 @@ BaseDetection::~BaseDetection(void)
 
 //detects faces
 
-vector<cv::Rect> BaseDetection::detect( Mat frame )
+vector<cv::Rect> BaseDetection::detect(Mat frame)
 {
 	// make face image smaller
 	double widthFactor=frame.cols/320.00;
@@ -30,8 +29,7 @@ vector<cv::Rect> BaseDetection::detect( Mat frame )
 	equalizeHist( frame_resized, frame_resized );
 	GaussianBlur( frame_resized, frame_resized, cv::Size( 0, 0 ), 1);
 	//face_cascade.detectMultiScale( frame_resized, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-	face_cascade.detectMultiScale( frame_resized, faces, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50) );
-
+	face_cascade.detectMultiScale(frame_resized, faces, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50) );
 	return faces;
 }
 
@@ -52,6 +50,7 @@ Mat BaseDetection::drawRect(Mat frame){
 	{
 		rectangle( frame,faces[i], Scalar( 255, 0, 255 ), 4, 8, 0 );
 	}
+
 	return frame;
 }
 

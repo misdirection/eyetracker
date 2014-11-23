@@ -35,11 +35,16 @@ void ThreadCapturing::Run()
 	while(_running)
 	{
 		Mat frame;
-
 		_captureDevice >> frame; // get a new frame from camera
+
 		Face.detect(frame);
+		CvFont font;
+		std::stringstream text;
+		text<< framesPerSeconds.getFPS(); 
+		String str1= text.str();
+		putText(frame,str1,cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
 		imshow(_windowName, Face.drawRect(frame)); //displays an image in the specified window
-		cout << "fps:" << framesPerSeconds.getFPS() << endl;
+		//cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);
 	}
 
