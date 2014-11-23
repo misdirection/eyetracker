@@ -37,8 +37,8 @@ void ThreadCapturing::Run()
 		Mat frame;
 
 		_captureDevice >> frame; // get a new frame from camera
-
-		imshow(_windowName, Face.detectAndDrawRect(frame)); //displays an image in the specified window
+		Face.detect(frame);
+		imshow(_windowName, Face.drawRect(frame)); //displays an image in the specified window
 		cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);
 	}

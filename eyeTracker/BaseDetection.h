@@ -13,9 +13,12 @@ public:
 	~BaseDetection(void);
 
 	//Methods
-	Mat detectAndDrawEllipse(Mat frame);
-	Mat detectAndDrawRect( Mat frame );
+	vector<cv::Rect> detect(Mat frame);
+	Mat BaseDetection::drawEllipse(Mat);
+	Mat BaseDetection::drawRect(Mat);
+
 private:
 
 	CascadeClassifier face_cascade, eye_cascade;
+	vector<cv::Rect> faces;
 };
