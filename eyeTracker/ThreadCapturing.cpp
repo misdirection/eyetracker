@@ -1,6 +1,6 @@
 #include "ThreadCapturing.h"
 #include "fps.h"
-
+#include "DetectionBasic.h"
 ThreadCapturing::ThreadCapturing(void){};
 ThreadCapturing::~ThreadCapturing(void){
 	destroyWindow(_windowName);
@@ -27,18 +27,24 @@ void ThreadCapturing::Run()
 {
 	data->y=111;
 	data->x=GetCurrentThreadId();
-
 	// test of  transfer to data thread only string here, but can be used with anything else
 	// send message of the thread to data thread
 	ThreadCom_send(_dataThreadId,(WPARAM)data);
 	fps framesPerSeconds;
+	DetectionBasic det;
 	while(_running)
 	{
-		xer=8;
 		Mat frame;
 		_captureDevice >> frame; // get a new frame from camera
+		flip(frame,frame,1);
+		det.detect(frame);
+		stringstream text; text << framesPerSeconds.getFPS();
+		putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
+		rectangle( frame,det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,det.getEyeRect(1), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		imshow(_windowName, frame); //displays an image in the specified window
-		cout << "fps:" << framesPerSeconds.getFPS() << endl;
+		//cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);
 	}
 

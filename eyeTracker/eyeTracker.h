@@ -7,11 +7,16 @@
 using namespace std;
 using namespace cv;
 
-extern int xer;
-
-class eyeTracker
+class Externals
 {
 public:
-	eyeTracker(void);
-	~eyeTracker(void);
+	Externals(void);
+	~Externals(void);
+	CascadeClassifier getFaceCascade(),getEyeCascade();
+	bool loadFaceCascade(), loadEyeCascade();
+
+private:
+	CascadeClassifier face_cascade,eye_cascade;
 };
+
+extern Externals* files;

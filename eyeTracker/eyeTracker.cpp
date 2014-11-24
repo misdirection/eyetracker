@@ -1,37 +1,44 @@
+#pragma once
 #include "eyeTracker.h"
 #include "fps.h"
 #include "ThreadCapturing.h"
 #include "ThreadData.h"
 
-VideoCapture* captureDevice;
+VideoCapture* captureDevice = new VideoCapture;
 // data thread
-ThreadData *datas;
+ThreadData *datas = new ThreadData;;
 // capture threads in a map for easy access
 map<int,ThreadCapturing*> devices;
-int xer;
+Externals* files = new Externals;
 
-eyeTracker::eyeTracker(void){}
-eyeTracker::~eyeTracker(void){}
 
 //counts attached devices and returns the amount of devices
-void getCountOfAttachedCaptureDevices()
+bool setup()
 {
+	// check devices from 0 to x. If available, then add value to the vector with null pointer
 	int number=0;
-	while (true)
+	while (number>=0)
 	{
 		captureDevice->open(number);
 		if (!captureDevice->isOpened())
 		{
-			break;
+			//no device -> return unsuccessful setup;
+			//when all devices recognized, go out of while loop
+			if (number == 0) {cout << "no available devices found\n"; return false;}
+			number=-1;
 		}
 		else
 		{
-			
 			devices[number]=nullptr;
 			number++;
 			captureDevice->release();
 		}
 	}
+	// loading cascade files
+	// allocating space for the Externals class
+	if (!files->loadFaceCascade()) {cout << "no haar cascade file for face recognition found\n"; return false;}
+	if (!files->loadEyeCascade()) {cout << "no haar cascade file for eye recognition found\n"; return false;}
+	return true;
 }
 
 void switchDevices(int number)
@@ -56,55 +63,51 @@ void switchDevices(int number)
 }
 int main( int argc, const char** argv ) 
 {
-	// get count of recognized cameras
-	captureDevice = new VideoCapture;
-	//allocation of data thread
-	datas = new ThreadData();
-	xer=7;
-	getCountOfAttachedCaptureDevices();
-	int number=-1;
-	
+	// get count of recognized cameras 
+
+	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
 	if (devices.size() > 0) 
 	{
 		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera";
+		// until you select an available device
+		int number=-1;
 		while(number<0 || number >=devices.size() )
 		{
-		while(!_kbhit());
-		string temp; temp= getch(); number = atoi(temp.c_str());
+			while(!_kbhit());
+			string temp; temp= getch(); number = atoi(temp.c_str());
 		}
+		// activate the selected device
 		switchDevices(number);
 	}
 	char key;
-	
-while((key = cvWaitKey(0)) != 0x1b)
-    {
+
+	while((key = cvWaitKey(0)) != 0x1b)
+	{
 
 		switch(key)
-        {
-			case '0': switchDevices(0); break;
-			case '1': switchDevices(1); break;
-			case '2': switchDevices(2); break;
-			case '3': switchDevices(3); break;
-			case '4': switchDevices(4); break;
-			case '5': switchDevices(5); break;
+		{
+		case '0': switchDevices(0); break;
+		case '1': switchDevices(1); break;
+		case '2': switchDevices(2); break;
+		case '3': switchDevices(3); break;
+		case '4': switchDevices(4); break;
+		case '5': switchDevices(5); break;
 		}
 	}
-	
 	//if( !captureDevice->open(0)){ printf("none\n");return -1; } //checks if a device is found
-    
+
 	//ThreadCapturing *webcam;
-    //char windowName[256];
-    //sprintf_s(windowName, "Face Tracker Window webcam");
+	//char windowName[256];
+	//sprintf_s(windowName, "Face Tracker Window webcam");
 	//webcam = new ThreadCapturing(windowName,*captureDevice, 0,datas->getThreadId());
 	//webcam->Start();
-	
+
 	//while(webcam->isRunning())
 	/*while(1)
 	{
 	}
 	*/
-    //delete captureDevice;
+	//delete captureDevice;
 	//captureDevice=nullptr;
-	cout << xer;
 	return (0);
 }

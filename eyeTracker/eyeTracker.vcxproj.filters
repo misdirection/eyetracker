@@ -30,11 +30,11 @@
     <ClInclude Include="Thread.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="DetectionBasic.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="eyeTracker.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="fps.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -45,6 +45,15 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Thread.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Externals.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="eyeTracker.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="DetectionBasic.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
