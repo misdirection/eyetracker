@@ -6,15 +6,16 @@
 
 VideoCapture* captureDevice = new VideoCapture;
 // data thread
-ThreadData *datas = new ThreadData;;
+ThreadData *datas = new ThreadData;
 // capture threads in a map for easy access
 map<int,ThreadCapturing*> devices;
 Externals* files = new Externals;
-
+DeviceInformation* captureDeviceInfo = new DeviceInformation;
 
 //counts attached devices and returns the amount of devices
 bool setup()
 {
+	// attached devices are checked and device informations will be available
 	// check devices from 0 to x. If available, then add value to the vector with null pointer
 	int number=0;
 	while (number>=0)
@@ -29,6 +30,10 @@ bool setup()
 		}
 		else
 		{
+			//test cout for the path and name of the device (accessable everywhere due to extern)
+			// use this to check if there is a calib file already
+			cout << captureDeviceInfo->getName(number) << endl;			
+			cout << captureDeviceInfo->getPath(number) << endl;			
 			devices[number]=nullptr;
 			number++;
 			captureDevice->release();
@@ -61,20 +66,23 @@ void switchDevices(int number)
 		}
 	}
 }
-int main( int argc, const char** argv ) 
-{
-	// get count of recognized cameras 
 
+
+
+int main( int argc, const char** argv ) 
+{ 
+	// get count of recognized cameras 
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
 	if (devices.size() > 0) 
 	{
-		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera";
+		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
 		// until you select an available device
 		int number=-1;
 		while(number<0 || number >=devices.size() )
 		{
 			while(!_kbhit());
 			string temp; temp= getch(); number = atoi(temp.c_str());
+			if (number == 0 && !(temp=="0")) {number=-1;}
 		}
 		// activate the selected device
 		switchDevices(number);
@@ -94,20 +102,6 @@ int main( int argc, const char** argv )
 		case '5': switchDevices(5); break;
 		}
 	}
-	//if( !captureDevice->open(0)){ printf("none\n");return -1; } //checks if a device is found
 
-	//ThreadCapturing *webcam;
-	//char windowName[256];
-	//sprintf_s(windowName, "Face Tracker Window webcam");
-	//webcam = new ThreadCapturing(windowName,*captureDevice, 0,datas->getThreadId());
-	//webcam->Start();
-
-	//while(webcam->isRunning())
-	/*while(1)
-	{
-	}
-	*/
-	//delete captureDevice;
-	//captureDevice=nullptr;
 	return (0);
 }

@@ -1,6 +1,8 @@
 #include "ThreadCapturing.h"
 #include "fps.h"
 #include "DetectionBasic.h"
+#include "DetectionCircles.h"
+
 ThreadCapturing::ThreadCapturing(void){};
 ThreadCapturing::~ThreadCapturing(void){
 	destroyWindow(_windowName);
@@ -9,11 +11,12 @@ ThreadCapturing::~ThreadCapturing(void){
 ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice,int deviceNumber, DWORD dataThreadID) :
 	Thread(), 
 	_captureDevice(captureDevice),
-	_dataThreadId(dataThreadID)
+	_dataThreadId(dataThreadID),
+	_deviceNumber(deviceNumber)
 {
 	data=new dataPackage;
 	strcpy_s(_windowName, windowName);
-	_captureDevice.open(deviceNumber);
+	_captureDevice.open(_deviceNumber);
 	namedWindow(_windowName, CV_WINDOW_AUTOSIZE);
 }
 
@@ -32,17 +35,24 @@ void ThreadCapturing::Run()
 	ThreadCom_send(_dataThreadId,(WPARAM)data);
 	fps framesPerSeconds;
 	DetectionBasic det;
+	DetectionCircles detCir;
 	while(_running)
 	{
 		Mat frame;
 		_captureDevice >> frame; // get a new frame from camera
 		flip(frame,frame,1);
-		det.detect(frame);
+		det.detect(&frame);
+		detCir.detect(&frame,det.getFaceRect());
 		stringstream text; text << framesPerSeconds.getFPS();
 		putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
-		rectangle( frame,det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
-		rectangle( frame,det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
-		rectangle( frame,det.getEyeRect(1), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,*det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,*det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,*det.getEyeRect(1), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,*detCir.getCircleArea(), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		for(int x=0;x<detCir.circleMatrix.size();x++)
+		{
+			circle(frame,detCir.circleMatrix[x],5, Scalar( 255, 255, 0 ), 2, 8, 0 );
+		}		
 		imshow(_windowName, frame); //displays an image in the specified window
 		//cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);

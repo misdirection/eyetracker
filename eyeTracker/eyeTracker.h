@@ -19,4 +19,22 @@ private:
 	CascadeClassifier face_cascade,eye_cascade;
 };
 
+class DeviceInformation
+{
+public:
+	DeviceInformation(void);
+	~DeviceInformation(void);
+	HRESULT EnumerateDevices(REFGUID, IEnumMoniker **);
+	void DisplayDeviceInformation(IEnumMoniker *);
+	void DeviceInformation::getData();
+
+	string getName(int i);
+	string getPath(int i);
+
+private:
+	vector<string> _name;
+	vector<string> _path;
+};
+
 extern Externals* files;
+extern DeviceInformation* captureDeviceInfo;

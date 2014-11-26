@@ -149,6 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DetectionBasic.h" />
+    <ClInclude Include="DetectionCircles.h" />
     <ClInclude Include="eyeTracker.h" />
     <ClInclude Include="fps.h" />
     <ClInclude Include="Thread.h" />
@@ -156,6 +158,10 @@
     <ClInclude Include="ThreadData.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DetectionBasic.cpp" />
+    <ClCompile Include="DetectionCircles.cpp" />
+    <ClCompile Include="DeviceInformation.cpp" />
+    <ClCompile Include="Externals.cpp" />
     <ClCompile Include="eyeTracker.cpp" />
     <ClCompile Include="fps.cpp" />
     <ClCompile Include="Thread.cpp" />

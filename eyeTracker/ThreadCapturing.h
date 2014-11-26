@@ -16,4 +16,5 @@ private:
 	char _windowName[256];
 	VideoCapture _captureDevice;
 	DWORD _dataThreadId;
+	int _deviceNumber;
 };
