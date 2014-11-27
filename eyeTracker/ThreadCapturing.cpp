@@ -43,16 +43,21 @@ void ThreadCapturing::Run()
 		flip(frame,frame,1);
 		det.detect(&frame);
 		detCir.detect(&frame,det.getFaceRect());
-		stringstream text; text << framesPerSeconds.getFPS();
+		//stringstream text; text << framesPerSeconds.getFPS();
+		stringstream text; text << detCir.basicAngle[0];
 		putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
 		rectangle( frame,*det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		rectangle( frame,*det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		rectangle( frame,*det.getEyeRect(1), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		rectangle( frame,*detCir.getCircleArea(), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		
 		for(int x=0;x<detCir.circleMatrix.size();x++)
 		{
-			circle(frame,detCir.circleMatrix[x],5, Scalar( 255, 255, 0 ), 2, 8, 0 );
+			circle(frame,Point(detCir.circleMatrix[x].x+detCir.circleArea.x,detCir.circleMatrix[x].y+detCir.circleArea.y),5, Scalar( 255, 255, 0 ), 2, 8, 0 );
 		}		
+		
+		line(frame,detCir.getCoordsOfcircleMatrix(1,0),detCir.getCoordsOfcircleMatrix(1,2), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		line(frame,detCir.getCoordsOfcircleMatrix(0,1),detCir.getCoordsOfcircleMatrix(2,1), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		imshow(_windowName, frame); //displays an image in the specified window
 		//cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);
