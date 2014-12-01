@@ -149,7 +149,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="calib.h" />
     <ClInclude Include="DetectionBasic.h" />
     <ClInclude Include="DetectionCircles.h" />
     <ClInclude Include="eyeTracker.h" />
@@ -159,7 +158,6 @@
     <ClInclude Include="ThreadData.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="calib.cpp" />
     <ClCompile Include="DetectionBasic.cpp" />
     <ClCompile Include="DetectionCircles.cpp" />
     <ClCompile Include="DeviceInformation.cpp" />

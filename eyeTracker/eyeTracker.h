@@ -14,11 +14,9 @@ public:
 	~Externals(void);
 	CascadeClassifier getFaceCascade(),getEyeCascade();
 	bool loadFaceCascade(), loadEyeCascade();
-	FileStorage getfs();
 
 private:
 	CascadeClassifier face_cascade,eye_cascade;
-	FileStorage fs;
 };
 
 class DeviceInformation
