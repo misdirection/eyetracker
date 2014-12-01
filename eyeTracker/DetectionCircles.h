@@ -7,41 +7,59 @@ class DetectionCircles
 public:
 	DetectionCircles(void);
 	~DetectionCircles(void);
+	// main function
 	void detect(Mat*, Rect*);
+	// area of face 
 	bool calculateCircleArea(Rect*);
+	// circleDetection
 	bool detectCircles();
+	// calculate the distance between detected circles 
 	void calculateDistanceBetweenPoints();
-	void fillCircleMatrix();
-	int getNeighborInMatrix(int,int);
-	bool calc3rdOutOf2(int,int,int);
-	bool calculate_distanceBetweenPointsInMatrixAreNearlySame();
-	bool setNeighbors(int);
-	void calcRotation();
 
+	bool fillCircleMatrix();
+	bool fillCircleMatrix_matrixPossible();
+	bool fillCircleMatrix_result1();
+	bool fillCircleMatrix_result2();
+	bool fillCircleMatrix_matrixFilled();
+
+	// int1-3: circle points, int4: which matrix in circleMatrix
+	bool calc3rdOutOf2(int,int,int,int);
+	void calcDistances();
+	void calcDistances_help(int,int,int,int,int);
+	//bool calculate_distanceBetweenPointsInMatrixAreNearlySame();
+	bool setNeighbors(int,int);
+	//void calcBasicRotation();
 	//getter
 	Rect* getCircleArea();
-	Point getCoordsOfcircleMatrix(int,int);
-
+	Point getCoordsOfcircleMatrix(int);
+	int getRotationAngle(int);
 	// helper
 	bool nearlyEqual(int,int,int);
-	vector<Point> circles;
-	double distanceOfPoints(Point,Point);
-	vector<double> basicAngle;
-	// coords of the circleMatrix
-	map<int,Point> circleMatrix;
-	Rect circleArea;
+	int getNeighborInMatrix(int,int);
+
 private:
 	Mat* _frame;
-	
 	Mat _working_frame;
-	
-	// main values that will be used
-	// distance between 2 points in pixels
-	vector<double> _distanceBetweenPoints;
+	vector<double> _rotationOfCalib;
+	vector<double> _rotationCurrentFrame;
+	int _noDetectionCount;
+	// distance between 2 points in pixels (length)
+	double _distanceBetweenPoints;
+	// distance between points after filling the matrix
+	map<int,vector<Point>> _distanceOfPoints_tmp;
+	vector<Point> _distanceOfPoints;
 
-	
+
+	vector<Point> circles;
+	double distanceOfPoints(Point*,Point*);
+	// coords of the circleMatrix
+	map<int,map<int,Point*> > circleMatrix;
+	Rect circleArea;
+
+
 	// helpers
 	vector<double> _distanceBetweenPointsTopResults_temp;
 	vector<double> _distanceBetweenPointsInMatrix;
+
 };
 

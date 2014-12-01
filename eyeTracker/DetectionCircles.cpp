@@ -1,12 +1,12 @@
 #include "DetectionCircles.h"
 #include <math.h>
 
-DetectionCircles::DetectionCircles(void)
+DetectionCircles::DetectionCircles(void) :_distanceBetweenPoints(0),_rotationOfCalib(0),_noDetectionCount(0)
 {
-	_distanceBetweenPoints.push_back(0.0);
-	_distanceBetweenPoints.push_back(0.0);
-	basicAngle.push_back(0.0);
-	basicAngle.push_back(0.0);
+	_distanceOfPoints.push_back(Point(0,0));
+	_distanceOfPoints.push_back(Point(0,0));
+	_rotationCurrentFrame.push_back(0);
+	_rotationCurrentFrame.push_back(0);
 }
 
 
@@ -15,9 +15,50 @@ DetectionCircles::~DetectionCircles(void)
 }
 
 
+void DetectionCircles::detect(Mat* frame, Rect* face)
+{
+	_frame=frame;
+	if (calculateCircleArea(face))
+	{
+	circles.clear();circleMatrix.clear();
+	// if at least 4 circles were recognized
+	if (detectCircles())
+	{
+		// no basic distance is calculated
+		if (_distanceBetweenPoints == 0) {calculateDistanceBetweenPoints();}
+		// if basic distance exists, but no first matrix creations for getting different x AND y distances
+		else if ((_rotationOfCalib.empty() || _distanceOfPoints[0]==Point(0,0) || _distanceOfPoints[1]==Point(0,0)) && fillCircleMatrix()) 
+		{	
+			// setup basic rotation
+			_rotationOfCalib.push_back(atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI);
+			_rotationOfCalib.push_back(atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI);
+		}
+		else if (!_rotationOfCalib.empty() && fillCircleMatrix())
+		{
+			_rotationCurrentFrame[0]=  atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI-_rotationOfCalib[0];
+			_rotationCurrentFrame[1]= atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI-_rotationOfCalib[1];
+		}
+		//now use distanceBetweenPoints and focal length to calculate basic distance
+	}
+	// now I have a basic value for first distance calculation.
+	// we need also the rotation of the points in straight view to cam.
+	// Now I have to create a matrix, that will be moved with the help of at least 3 detected points (2 cols,1 row or 1row,2cols)
+	// with these 3 points we can calculate the other 6 points
+	// if same rotation like straight view, distance can be can be calculated by change in distance between the points
+	// first aim keep straight view and closer and farer (pixel count change) & drawing matrix
+	// eye reg relative to headband
+	// stürzt ab bei 3 cams oder mehr
+	// min und mx punkte für ecken bestimmen.
+	}
+}
+
+int DetectionCircles::getRotationAngle(int x)
+{
+	return (int)_rotationCurrentFrame[x];
+}
+
 void DetectionCircles::calculateDistanceBetweenPoints()
 {
-	// also remove duplicates in this loop!
 	// all available distances are saved in this vector from all points to all points
 	vector<double> _distancesBetweenAllCircles;
 	//check all circles
@@ -28,7 +69,7 @@ void DetectionCircles::calculateDistanceBetweenPoints()
 			for(int j=i+1;j<circles.size();j++)
 			{
 				// distance between points
-				_distancesBetweenAllCircles.push_back(distanceOfPoints(circles[i],circles[j]));
+				_distancesBetweenAllCircles.push_back(distanceOfPoints(&circles[i],&circles[j]));
 			}
 		}
 		std::sort(_distancesBetweenAllCircles.begin(),_distancesBetweenAllCircles.end());
@@ -44,63 +85,19 @@ void DetectionCircles::calculateDistanceBetweenPoints()
 	// if 3 results, then 
 	if (_distanceBetweenPointsTopResults_temp.size() == 3)
 	{
-		_distanceBetweenPoints[0]=(_distanceBetweenPointsTopResults_temp[0]+_distanceBetweenPointsTopResults_temp[1]+_distanceBetweenPointsTopResults_temp[2])/3;
+		if (nearlyEqual(_distanceBetweenPointsTopResults_temp[0],_distanceBetweenPointsTopResults_temp[1],20)
+			&& nearlyEqual(_distanceBetweenPointsTopResults_temp[1],_distanceBetweenPointsTopResults_temp[2],20)
+			&& nearlyEqual(_distanceBetweenPointsTopResults_temp[2],_distanceBetweenPointsTopResults_temp[0],20))
+		{_distanceBetweenPoints=(_distanceBetweenPointsTopResults_temp[0]+_distanceBetweenPointsTopResults_temp[1]+_distanceBetweenPointsTopResults_temp[2])/3;}
 		_distanceBetweenPointsTopResults_temp.clear();
 	}
 }
 
-void DetectionCircles::calcRotation()
+Point DetectionCircles::getCoordsOfcircleMatrix(int x)
 {
-	if (circleMatrix.size()==9)
-	{
-	// TODO: middle value of all, not only corners
-	basicAngle[0] = atan2(circleMatrix[5].y-circleMatrix[3].y,circleMatrix[5].x-circleMatrix[3].x)*180/CV_PI;
-	basicAngle[1] = atan2(circleMatrix[5].x-circleMatrix[3].x,circleMatrix[5].y-circleMatrix[3].y)*180/CV_PI;
-	}
-}
-
-void DetectionCircles::detect(Mat* frame, Rect* face)
-{
-	_frame=frame;
-	if (calculateCircleArea(face))
-	{
-	circles.clear();circleMatrix.clear();
-	// if at least 4 circles were recognized
-	if (detectCircles())
-	{
-		// no basic distance is calculated
-		if (_distanceBetweenPoints[0] == 0.0) {calculateDistanceBetweenPoints();}
-		// if basic distance exists, but no first matrix creations for getting different x&y distances
-		if (_distanceBetweenPoints[1] == 0.0) 
-		{	
-			fillCircleMatrix();
-			// fill basic rotation values
-			// ebene (1,0)
-			// vektor(circleMatrix[2].x-circleMatrix[0].x,circleMatrix[2].y-circleMatrix[0].y)
-			//double dot = x1*x2 + y1*y2;
-			if (circleMatrix.size() > 0 ) {calcRotation();}
-
-			//double basicangle = atan2(circleMatrix[2].y-circleMatrix[0].y,circleMatrix[2].x-circleMatrix[0].x);
-			//cout << basicangle*180/3.14 << endl;
-		}
-		//now use distanceBetweenPoints and focal length to calculate basic distance
-		else {fillCircleMatrix();calcRotation();}
-	}
-	// now I have a basic value for first distance calculation.
-	// we need also the rotation of the points in straight view to cam.
-	// Now I have to create a matrix, that will be moved with the help of at least 3 detected points (2 cols,1 row or 1row,2cols)
-	// with these 3 points we can calculate the other 6 points
-	// if same rotation like straight view, distance can be can be calculated by change in distance between the points
-	// first aim keep straight view and closer and farer (pixel count change) & drawing matrix
-	// eye reg relative to headband
-	// stürzt ab bei 3 cams oder mehr
-	// min und mx punkte für ecken bestimmen.
-	}
-}
-
-Point DetectionCircles::getCoordsOfcircleMatrix(int row, int col)
-{
-	return circleMatrix[3*row+col];
+	if (circleMatrix[0][x] != nullptr)
+	{	return *circleMatrix[0][x]+Point(circleArea.x,circleArea.y);}
+	else  {return Point(0,0);}
 }
 
 int DetectionCircles::getNeighborInMatrix(int i,int side)
@@ -116,118 +113,100 @@ int DetectionCircles::getNeighborInMatrix(int i,int side)
 	return i;
 }
 
-bool DetectionCircles::calculate_distanceBetweenPointsInMatrixAreNearlySame()
-{
-	_distanceBetweenPointsInMatrix.clear();
-	_distanceBetweenPointsInMatrix.push_back(0.0);
-	_distanceBetweenPointsInMatrix.push_back(0.0);
-	_distanceBetweenPointsInMatrix.push_back(0.0);
-	_distanceBetweenPointsInMatrix.push_back(0.0);
-	_distanceBetweenPointsInMatrix.push_back(0.0);
-	_distanceBetweenPointsInMatrix.push_back(0.0);
-	vector<vector<double>>horiAndVert(6);
-	for (int i=0;i<9;i++)
-	{
-		double _temp_dist,_temp_value,_temp_value2;
-		_temp_dist=distanceOfPoints(circleMatrix[i],circleMatrix[getNeighborInMatrix(i,0)]);
-		_temp_value=abs(circleMatrix[i].x-circleMatrix[getNeighborInMatrix(i,0)].x);
-		_temp_value2=abs(circleMatrix[i].y-circleMatrix[getNeighborInMatrix(i,0)].y);
-		if (_temp_dist != 0 && circleMatrix[i] != Point(0,0) && circleMatrix[getNeighborInMatrix(i,0)] != Point(0,0)) {horiAndVert[0].push_back(_temp_dist);horiAndVert[2].push_back(_temp_value);horiAndVert[3].push_back(_temp_value2);}
-		_temp_dist=distanceOfPoints(circleMatrix[i],circleMatrix[getNeighborInMatrix(i,1)]);
-		_temp_value=abs(circleMatrix[i].x-circleMatrix[getNeighborInMatrix(i,1)].x);
-		_temp_value2=abs(circleMatrix[i].y-circleMatrix[getNeighborInMatrix(i,1)].y);
-		if (_temp_dist != 0 && circleMatrix[i] != Point(0,0) && circleMatrix[getNeighborInMatrix(i,1)] != Point(0,0)) {horiAndVert[0].push_back(_temp_dist);horiAndVert[2].push_back(_temp_value);horiAndVert[3].push_back(_temp_value2);}
-		_temp_dist=distanceOfPoints(circleMatrix[i],circleMatrix[getNeighborInMatrix(i,2)]);
-		_temp_value=abs(circleMatrix[i].x-circleMatrix[getNeighborInMatrix(i,2)].x);
-		_temp_value2=abs(circleMatrix[i].y-circleMatrix[getNeighborInMatrix(i,2)].y);
-		if (_temp_dist != 0 && circleMatrix[i] != Point(0,0) && circleMatrix[getNeighborInMatrix(i,2)] != Point(0,0)) {horiAndVert[1].push_back(_temp_dist);horiAndVert[4].push_back(_temp_value);horiAndVert[5].push_back(_temp_value2);}
-		_temp_dist=distanceOfPoints(circleMatrix[i],circleMatrix[getNeighborInMatrix(i,3)]);
-		_temp_value=abs(circleMatrix[i].x-circleMatrix[getNeighborInMatrix(i,3)].x);
-		_temp_value2=abs(circleMatrix[i].y-circleMatrix[getNeighborInMatrix(i,3)].y);
-		if (_temp_dist != 0 && circleMatrix[i] != Point(0,0) && circleMatrix[getNeighborInMatrix(i,3)] != Point(0,0)) {horiAndVert[1].push_back(_temp_dist);horiAndVert[4].push_back(_temp_value);horiAndVert[5].push_back(_temp_value2);}
-	}
-	//check if all horizontals are nearly the same & get horizontal middle value
-	// j=0 is horizontal, j=1 is vertical
-	//vector<double> _distanceBetweenPointsInMatrix(2);
-	bool nearlySame=true;
-	// for distance values and also middle value of x,y for each direction (left/right and above/under)
-	for (int j=0;j<6;j++)
-	{
-		_distanceBetweenPointsInMatrix[j]=0;
-		for (int i=0;i<horiAndVert[j].size();i++){_distanceBetweenPointsInMatrix[j]+=horiAndVert[j][i];}
-		_distanceBetweenPointsInMatrix[j]/=horiAndVert[j].size();
-		// for the distance values check here
-		if (j<2)
-		{
-		for (int i=0;i<horiAndVert[j].size();i++)
-		{
-			if (nearlySame && !nearlyEqual(_distanceBetweenPointsInMatrix[j],horiAndVert[j][i],60)) {nearlySame=false;}
-		}
-		}
-	}
-	if (nearlyEqual(_distanceBetweenPointsInMatrix[0],_distanceBetweenPointsInMatrix[1],40)) {return nearlySame;}
-	else return false;
-}
-bool DetectionCircles::calc3rdOutOf2(int a,int b,int c)
+bool DetectionCircles::calc3rdOutOf2(int a,int b,int c,int inMatrix)
 {
 bool change=false;
-int findOut;
-if(circleMatrix[a]==Point(0,0) && circleMatrix[b]!=Point(0,0) && circleMatrix[c]!=Point(0,0))
+if(circleMatrix[inMatrix][a]==nullptr && circleMatrix[inMatrix][b]!=nullptr && circleMatrix[inMatrix][c]!=nullptr)
 {
-circleMatrix[a].x=circleMatrix[b].x-(circleMatrix[c].x-circleMatrix[b].x );
-circleMatrix[a].y=circleMatrix[b].y-(circleMatrix[c].y-circleMatrix[b].y );
+	circleMatrix[inMatrix][a]= new Point(circleMatrix[inMatrix][b]->x-(circleMatrix[inMatrix][c]->x-circleMatrix[inMatrix][b]->x),
+										 circleMatrix[inMatrix][b]->y-(circleMatrix[inMatrix][c]->y-circleMatrix[inMatrix][b]->y));
 change=true;
 }
-if(circleMatrix[a]!=Point(0,0) && circleMatrix[b]==Point(0,0) && circleMatrix[c]!=Point(0,0))
+else if(circleMatrix[inMatrix][a]!=nullptr && circleMatrix[inMatrix][b]==nullptr && circleMatrix[inMatrix][c]!=nullptr)
 {
-circleMatrix[b].x=circleMatrix[a].x+0.5*(circleMatrix[c].x-circleMatrix[a].x );
-circleMatrix[b].y=circleMatrix[a].y+0.5*(circleMatrix[c].y-circleMatrix[a].y );
+	circleMatrix[inMatrix][b]= new Point(circleMatrix[inMatrix][a]->x+(0.5*(circleMatrix[inMatrix][c]->x-circleMatrix[inMatrix][a]->x)),
+										 circleMatrix[inMatrix][a]->y+(0.5*(circleMatrix[inMatrix][c]->y-circleMatrix[inMatrix][a]->y)));
 change=true;
 }
-if(circleMatrix[a]!=Point(0,0) && circleMatrix[b]!=Point(0,0) && circleMatrix[c]==Point(0,0))
+else if(circleMatrix[inMatrix][a]!=nullptr && circleMatrix[inMatrix][b]!=nullptr && circleMatrix[inMatrix][c]==nullptr)
 {
-circleMatrix[c].x=circleMatrix[b].x+(circleMatrix[b].x-circleMatrix[a].x );
-circleMatrix[c].y=circleMatrix[b].y+(circleMatrix[b].y-circleMatrix[a].y );
+	circleMatrix[inMatrix][c]= new Point(circleMatrix[inMatrix][b]->x+(circleMatrix[inMatrix][b]->x-circleMatrix[inMatrix][a]->x),
+										 circleMatrix[inMatrix][b]->y+(circleMatrix[inMatrix][b]->y-circleMatrix[inMatrix][a]->y));
+//_distanceOfPoints[direction].push_back(tempdist);
 change=true;
 }
 return change;
 }
 
-bool DetectionCircles::setNeighbors(int cir)
+
+	// calculate existing distances
+void DetectionCircles::calcDistances()
+{
+	calcDistances_help(0,1,2,0,0);calcDistances_help(3,4,5,0,0);calcDistances_help(6,7,8,0,0);calcDistances_help(0,3,6,1,0);calcDistances_help(1,4,7,1,0);calcDistances_help(2,5,8,1,0);
+	for(int i=0;i<2;i++)
+	{
+		for (int j=1;j<_distanceOfPoints_tmp[i].size()-1;j++)
+		{
+			_distanceOfPoints_tmp[i][0]+=_distanceOfPoints_tmp[i][j];
+		}
+		_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x/(_distanceOfPoints_tmp[i].size()-1);
+		_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y/(_distanceOfPoints_tmp[i].size()-1);
+	}
+	_distanceOfPoints_tmp.clear();
+}
+
+void DetectionCircles::calcDistances_help(int a,int b,int c,int direction, int inMatrix)
+{
+	if (circleMatrix[inMatrix][a]!=nullptr && circleMatrix[inMatrix][b]!=nullptr)
+	{
+		_distanceOfPoints_tmp[direction].push_back(*circleMatrix[inMatrix][b]-*circleMatrix[inMatrix][a]);
+	}
+	if (circleMatrix[inMatrix][b]!=nullptr && circleMatrix[inMatrix][c]!=nullptr)
+	{
+		_distanceOfPoints_tmp[direction].push_back(*circleMatrix[inMatrix][c]-*circleMatrix[inMatrix][b]);
+	}
+	if (circleMatrix[inMatrix][a]!=nullptr && circleMatrix[inMatrix][c]!=nullptr)
+	{
+		_distanceOfPoints_tmp[direction].push_back(0.5*(*circleMatrix[inMatrix][c]-*circleMatrix[inMatrix][a]));
+	}
+}
+
+bool DetectionCircles::setNeighbors(int cir,int inMatrix)
 {
 	bool change=false;
-	if (circleMatrix[cir]!=Point(0,0)) 
+	if (circleMatrix[inMatrix][cir]!=nullptr) 
 	{
 		// check if all neighbors have values
-		if (circleMatrix[getNeighborInMatrix(cir,0)] == Point(0,0)) 
+		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,0)] == nullptr) 
 		{
-			circleMatrix[getNeighborInMatrix(cir,0)].x=circleMatrix[cir].x-_distanceBetweenPointsInMatrix[2];
-			circleMatrix[getNeighborInMatrix(cir,0)].y=circleMatrix[cir].y-_distanceBetweenPointsInMatrix[3];
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,0)]=new Point(circleMatrix[inMatrix][cir]->x-_distanceOfPoints[0].x,
+																		circleMatrix[inMatrix][cir]->y-_distanceOfPoints[0].y);
 			change=true;
 		}
-		if (circleMatrix[getNeighborInMatrix(cir,1)] == Point(0,0)) 
+		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,1)] == nullptr) 
 		{
-			circleMatrix[getNeighborInMatrix(cir,1)].x=circleMatrix[cir].x+_distanceBetweenPointsInMatrix[2];
-			circleMatrix[getNeighborInMatrix(cir,1)].y=circleMatrix[cir].y+_distanceBetweenPointsInMatrix[3];
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,1)]=new Point(circleMatrix[inMatrix][cir]->x+_distanceOfPoints[0].x,
+																		circleMatrix[inMatrix][cir]->y+_distanceOfPoints[0].y);
 			change=true;
 		}
-		if (circleMatrix[getNeighborInMatrix(cir,2)] == Point(0,0)) 
+		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,2)] == nullptr) 
 		{
-			circleMatrix[getNeighborInMatrix(cir,2)].x=circleMatrix[cir].x-_distanceBetweenPointsInMatrix[4];
-			circleMatrix[getNeighborInMatrix(cir,2)].y=circleMatrix[cir].y-_distanceBetweenPointsInMatrix[5];
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,2)]=new Point(circleMatrix[inMatrix][cir]->x-_distanceOfPoints[1].x,
+																		circleMatrix[inMatrix][cir]->y-_distanceOfPoints[1].y);
 			change=true;
 		}
-		if (circleMatrix[getNeighborInMatrix(cir,3)] == Point(0,0)) 
+		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,3)] == nullptr) 
 		{
-			circleMatrix[getNeighborInMatrix(cir,3)].x=circleMatrix[cir].x+_distanceBetweenPointsInMatrix[4];
-				circleMatrix[getNeighborInMatrix(cir,3)].y=circleMatrix[cir].y+_distanceBetweenPointsInMatrix[5];
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,3)]=new Point(circleMatrix[inMatrix][cir]->x+_distanceOfPoints[1].x,
+																		circleMatrix[inMatrix][cir]->y+_distanceOfPoints[1].y);
 			change=true;
 		}
 	}
 	return change;
 }
 
-void DetectionCircles::fillCircleMatrix()
+
+bool DetectionCircles::fillCircleMatrix_matrixPossible()
 {
 	// getting corner points
 	// set first circle in every corner
@@ -242,23 +221,129 @@ void DetectionCircles::fillCircleMatrix()
 	}
 	int xMid=xMin+(xMax-xMin)/2;
 	int yMid=yMin+(yMax-yMin)/2;
-	// empty previous values
-	circleMatrix.clear();
+	// if only distanceBetweenPoints exists
+		// distance must be nearly the same like in calibration process
+	if (_distanceOfPoints[0]==Point(0,0) || _distanceOfPoints[1]==Point(0,0))	
+	{
+	if (!nearlyEqual(distanceOfPoints(&Point(xMid,yMin),&Point(xMin,yMin)),_distanceBetweenPoints,40) || !nearlyEqual(distanceOfPoints(&Point(xMin,yMid),&Point(xMin,yMin)),_distanceBetweenPoints,40) ) {return false;}
+	}
+	else
+	{
+		// distance must be nearly the one from previous
+		if (_noDetectionCount<6 && (!nearlyEqual(distanceOfPoints(&Point(xMid,yMin),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[0]),40) || !nearlyEqual(distanceOfPoints(&Point(xMin,yMid),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[1]),40))) 
+		{
+			_noDetectionCount++;
+			if (_noDetectionCount==5) {_noDetectionCount=0;_distanceOfPoints[0]=Point(0,0);_distanceOfPoints[1]=Point(0,0);return false;}
+		}
+	}
 	bool row0=false,row1=false,row2=false,col0=false,col1=false,col2=false;
+	// fill matrix with detected circles
 	for (int i=0;i<circles.size();i++)
 	{
-		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0]=circles[i];row0=true;col0=true;}
-		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[1]=circles[i];row0=true;col1=true;}
-		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[2]=circles[i];row0=true;col2=true;}
-		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[3]=circles[i];row1=true;col0=true;}
-		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[4]=circles[i];row1=true;col1=true;}
-		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[5]=circles[i];row1=true;col2=true;}
-		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[6]=circles[i];row2=true;col0=true;}
-		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[7]=circles[i];row2=true;col1=true;}
-		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[8]=circles[i];row2=true;col2=true;}
+		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][0]=&circles[i];row0=true;col0=true;}
+		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][1]=&circles[i];row0=true;col1=true;}
+		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][2]=&circles[i];row0=true;col2=true;}
+		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][3]=&circles[i];row1=true;col0=true;}
+		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][4]=&circles[i];row1=true;col1=true;}
+		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][5]=&circles[i];row1=true;col2=true;}
+		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][6]=&circles[i];row2=true;col0=true;}
+		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][7]=&circles[i];row2=true;col1=true;}
+		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][8]=&circles[i];row2=true;col2=true;}
 	}
 	// if 2, add third
-	// each row and column must have at least one value, check if we can go on
+	// 3/2 or 2/3 rows/cols must have at least one value, check if we can go on
+	if (row0 && row2 && col0 && col1 && col2 || row0 && row1 && row2 && col0 && col2) {return true;}
+	else {return false;}
+}
+
+bool DetectionCircles::fillCircleMatrix_result1()
+{
+	// fill other matrixes for calculating ([1] and [2] needed
+	for (int i=1;i<2;i++)
+	{
+	circleMatrix[i]=circleMatrix[0];
+	}
+
+	// first horizontal, then vertical is first result		
+	while (calc3rdOutOf2(0,1,2,1) | calc3rdOutOf2(3,4,5,1) | calc3rdOutOf2(6,7,8,1) | calc3rdOutOf2(0,3,6,1) | calc3rdOutOf2(1,4,7,1) | calc3rdOutOf2(2,5,8,1));		
+	// first vertical, then horizontal is second result
+	while (calc3rdOutOf2(0,3,6,2) | calc3rdOutOf2(1,4,7,2) | calc3rdOutOf2(2,5,8,2) | calc3rdOutOf2(0,1,2,2) | calc3rdOutOf2(3,4,5,2) | calc3rdOutOf2(6,7,8,2));
+	for (int i=0;i<9;i++)
+	{
+		// if its not a detected circle
+		if (circleMatrix[0][i]!=(circleMatrix[1][i]))
+		{
+			// fill circleMatrix[1] as possible result 
+			if (circleMatrix[1][i]==nullptr && circleMatrix[2][i]!=nullptr)
+				{circleMatrix[1][i]=circleMatrix[2][i];}
+			else if (circleMatrix[1][i]!=nullptr && circleMatrix[2][i]!=nullptr)
+			{
+				circleMatrix[1][i]->x=(circleMatrix[1][i]->x+circleMatrix[2][i]->x)/2;
+				circleMatrix[1][i]->y=(circleMatrix[1][i]->y+circleMatrix[2][i]->y)/2;
+			}
+		}
+	}
+	circleMatrix[0]=circleMatrix[1];
+	return true;
+}
+
+bool DetectionCircles::fillCircleMatrix_result2()
+{
+	
+	// fill other matrixes for calculating ([1] till [4])
+	for (int i=1;i<5;i++)
+	{
+	circleMatrix[i]=circleMatrix[0];
+	}
+	bool change=true;
+	while (change)
+	{
+		for (int cir=0;cir<circleMatrix[1].size();cir++)
+		{
+			change=setNeighbors(cir,1);
+		}
+	}
+	return true;
+}
+
+bool DetectionCircles::fillCircleMatrix_matrixFilled()
+{
+	for (int i=0;i<9;i++)
+	{
+		if (circleMatrix[0][i]==nullptr) {return false;}
+	}
+	return true;
+}
+
+
+bool DetectionCircles::fillCircleMatrix()
+{
+	// if 9 circles are detected, the matrix is already complete. Update the distances and return
+	// filling recognized circles into the matrix and check if enough for calculation
+	if (fillCircleMatrix_matrixPossible())
+	{
+		if (fillCircleMatrix_matrixFilled()) 
+		{
+			calcDistances();
+			return true;
+		}
+		// 1st result by adding third with the help of circleMatrix[1] and [2], result if successful in [0]
+		if (fillCircleMatrix_result1()) 
+		{
+			// calculate distances needed for result2 and if return
+			calcDistances();
+			if (fillCircleMatrix_matrixFilled()) {return true;}
+			// if not successfull, try with 2nd method to fill [using circleMatrix[2]-[5]
+			if (fillCircleMatrix_result2())
+			{
+				if (fillCircleMatrix_matrixFilled()) {return true;}
+			}
+		}
+	}
+	circleMatrix.clear();return false;
+}
+
+/*
 	if (row0 && row2 && col0 && col1 && col2 || row0 && row1 && row2 && col0 && col2)
 	{
 		while (calc3rdOutOf2(0,1,2) | calc3rdOutOf2(3,4,5) | calc3rdOutOf2(6,7,8) | calc3rdOutOf2(0,3,6) | calc3rdOutOf2(1,4,7) | calc3rdOutOf2(2,5,8));
@@ -292,7 +377,9 @@ void DetectionCircles::fillCircleMatrix()
 		_distanceBetweenPoints[0]=_distanceBetweenPointsInMatrix[0];
 		_distanceBetweenPoints[1]=_distanceBetweenPointsInMatrix[1];
 	}
-}
+*/
+
+
 
 bool DetectionCircles::calculateCircleArea(Rect* face)
 {
@@ -373,7 +460,7 @@ bool DetectionCircles::nearlyEqual(int x,int y,int z)
 	else {return false;}
 }
 
-double DetectionCircles::distanceOfPoints(Point i,Point j)
+double DetectionCircles::distanceOfPoints(Point* i,Point* j)
 {
-	return sqrt(pow((i.x-j.x),2)+pow((i.y-j.y),2));
+	return sqrt(pow((i->x-j->x),2)+pow((i->y-j->y),2));
 }
