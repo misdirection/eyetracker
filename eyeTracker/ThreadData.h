@@ -9,7 +9,7 @@ public:
 	ThreadData(void);
 	~ThreadData(void);
 	void Run();
-
+	 
 private:
 };
 
