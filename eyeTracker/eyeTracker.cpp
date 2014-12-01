@@ -44,10 +44,7 @@ bool setup()
 	// allocating space for the Externals class
 	if (!files->loadFaceCascade()) {cout << "no haar cascade file for face recognition found\n"; return false;}
 	if (!files->loadEyeCascade()) {cout << "no haar cascade file for eye recognition found\n"; return false;}
-	if (!fs.isOpened())
-	{
-		cout << "Could not open the configuration file: \"" << inputSettingsFile << "\"" << endl;
-		return -1;
+	if (!files->loadCalibFile()){cout << "Could not open the configuration file: \"" << "default.xml" << "\"" << endl; return false;
 	}
 	return true;
 }
@@ -77,12 +74,9 @@ int run()
 {
 	help();
 	Settings s;
-	cout<<"hello"<<endl;
-	const string inputSettingsFile = "default.xml";
-	fs(inputSettingsFile, FileStorage::READ); // Read the settings
-	
-	fs["Settings"] >> s;
-	fs.release();                                         // close Settings file
+	// Read the settings
+	files->getCalibFile()["Settings"] >> s;
+	files->getCalibFile().release();                                         // close Settings file
 
 	if (!s.goodInput)
 	{
@@ -232,7 +226,7 @@ int run()
 		}
 	}
 
-return -1;
+	return -1;
 
 }
 
@@ -241,8 +235,9 @@ return -1;
 int main( int argc, const char** argv ) 
 { 
 	// get count of recognized cameras 
-	run();
+
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
+	run();
 	if (devices.size() > 0) 
 	{
 		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";

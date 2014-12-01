@@ -14,7 +14,8 @@ public:
 	~Externals(void);
 	CascadeClassifier getFaceCascade(),getEyeCascade();
 	bool loadFaceCascade(), loadEyeCascade();
-	FileStorage getfs();
+	FileStorage getCalibFile();
+	bool loadCalibFile();
 
 private:
 	CascadeClassifier face_cascade,eye_cascade;
