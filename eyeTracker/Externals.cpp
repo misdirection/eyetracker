@@ -31,4 +31,8 @@ bool Externals::loadEyeCascade()
 	return eye_cascade.load("haarcascade_eye.xml");
 }
 
+bool Externals::loadEyeCascade()
+{
+	return eye_cascade.load("haarcascade_eye.xml");
+}
 

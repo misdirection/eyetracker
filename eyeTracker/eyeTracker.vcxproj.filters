@@ -36,6 +36,9 @@
     <ClInclude Include="DetectionCircles.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="calib.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fps.cpp">
@@ -63,6 +66,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="DeviceInformation.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="calib.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
