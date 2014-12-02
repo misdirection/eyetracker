@@ -17,8 +17,9 @@ public:
 	// getter for values
 	// get pointer to the created rectangle
 	Rect* getFaceRect();
-	Rect* getEyeRect(int); // int=0 is left eye, int=1 is right eye
-	
+	Rect getEyeRect(int); // int=0 is left eye, int=1 is right eye
+	vector<Rect> getAllEyeRect(){return eyes;};
+	Mat* getFrame(){return _frame;};
 	//helper functions
 	void setRectangleZero(Rect);
 	bool isRectangleZero(Rect);

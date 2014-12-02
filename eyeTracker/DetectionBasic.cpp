@@ -94,9 +94,9 @@ bool DetectionBasic::detectFace()
 	 return &face;
  }
 
- Rect* DetectionBasic::getEyeRect(int position)
+ Rect DetectionBasic::getEyeRect(int position)
  {
-	 return &eyes[position];
+	 return eyes[position];
  }
 
  void DetectionBasic::setRectangleZero(Rect r)
