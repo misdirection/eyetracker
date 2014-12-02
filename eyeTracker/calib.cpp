@@ -2,8 +2,9 @@
 #pragma once
 #include "eyeTracker.h"
 #include "calib.h"
+//#include "eyeTracker.cpp"
 
-//void help()
+DeviceInformation* noOfDev = new DeviceInformation;
 
 Settings::Settings()
 {
@@ -14,6 +15,7 @@ Settings::~Settings()
 
 void  Settings::write(FileStorage& fs) const                        //Write serialization for this class
 {
+
 	fs << "{" << "BoardSize_Width"  << boardSize.width
 		<< "BoardSize_Height" << boardSize.height
 		<< "Square_Size"         << squareSize
@@ -78,9 +80,13 @@ void Settings::interprate()
 	{
 		if (input[0] >= '0' && input[0] <= '9')
 		{
+			//cout<<"1st"<<input<<endl;
 			stringstream ss(input);
 			ss >> cameraID;
 			inputType = CAMERA;
+			//cout<<"Device Name"<<noOfDev->getPath(cameraID)<<endl;
+			//outputFileName=	noOfDev->getPath(cameraID);
+
 		}
 		else
 		{
@@ -92,8 +98,17 @@ void Settings::interprate()
 			else
 				inputType = VIDEO_FILE;
 		}
-		if (inputType == CAMERA)
+		if (inputType == CAMERA){
+			/*int number=-1;
+			while(number<0 || number >=2 )
+			{
+				while(!_kbhit());
+				string temp; temp= getch(); number = atoi(temp.c_str());
+				if (number == 0 && !(temp=="0")) {number=-1;}
+			}*/
 			inputCapture.open(cameraID);
+
+		}
 		if (inputType == VIDEO_FILE)
 			inputCapture.open(input);
 		if (inputType != IMAGE_LIST && !inputCapture.isOpened())
@@ -154,18 +169,12 @@ bool Settings::readStringList( const string& filename, vector<string>& l )
 }
 
 
-//void read(const FileNode& node, Settings& x, const Settings& default_value = Settings())
-
-
-
-
-
 
 double computeReprojectionErrors( const vector<vector<Point3f> >& objectPoints,
-										const vector<vector<Point2f> >& imagePoints,
-										const vector<Mat>& rvecs, const vector<Mat>& tvecs,
-										const Mat& cameraMatrix , const Mat& distCoeffs,
-										vector<float>& perViewErrors)
+								 const vector<vector<Point2f> >& imagePoints,
+								 const vector<Mat>& rvecs, const vector<Mat>& tvecs,
+								 const Mat& cameraMatrix , const Mat& distCoeffs,
+								 vector<float>& perViewErrors)
 {
 	vector<Point2f> imagePoints2;
 	int i, totalPoints = 0;
@@ -188,7 +197,7 @@ double computeReprojectionErrors( const vector<vector<Point3f> >& objectPoints,
 }
 
 void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
-									 Settings::Pattern patternType /*= Settings::CHESSBOARD*/)
+							  Settings::Pattern patternType /*= Settings::CHESSBOARD*/)
 {
 	corners.clear();
 
@@ -212,8 +221,8 @@ void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>&
 }
 
 bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
-						   vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
-						   vector<float>& reprojErrs,  double& totalAvgErr)
+					vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
+					vector<float>& reprojErrs,  double& totalAvgErr)
 {
 
 	cameraMatrix = Mat::eye(3, 3, CV_64F);
@@ -231,7 +240,7 @@ bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distC
 	double rms = calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
 		distCoeffs, rvecs, tvecs, s.flag|CV_CALIB_FIX_K4|CV_CALIB_FIX_K5);
 
-	cout << "Re-projection error reported by calibrateCamera: "<< rms << endl;
+	//cout << "Re-projection error reported by calibrateCamera: "<< rms << endl;
 
 	bool ok = checkRange(cameraMatrix) && checkRange(distCoeffs);
 
@@ -243,31 +252,33 @@ bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distC
 
 // Print camera parameters to the output file
 void saveCameraParams( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
-							 const vector<Mat>& rvecs, const vector<Mat>& tvecs,
-							 const vector<float>& reprojErrs, const vector<vector<Point2f> >& imagePoints,
-							 double totalAvgErr )
+					  const vector<Mat>& rvecs, const vector<Mat>& tvecs,
+					  const vector<float>& reprojErrs, const vector<vector<Point2f> >& imagePoints,
+					  double totalAvgErr )
 {
 	FileStorage fs( s.outputFileName, FileStorage::WRITE );
+	//s.outputFileName=
+		cout<<noOfDev->getPath(0)<<endl;
 	time_t tm;
 	time( &tm );
 	struct tm *t2 = localtime( &tm );
 	char buf[1024];
 	strftime( buf, sizeof(buf)-1, "%c", t2 );
 
-	fs << "calibration_Time" << buf;
+	//fs << "calibration_Time" << buf;
 
-	if( !rvecs.empty() || !reprojErrs.empty() )
-		fs << "nrOfFrames" << (int)max(rvecs.size(), reprojErrs.size());
-	fs << "image_Width" << imageSize.width;
-	fs << "image_Height" << imageSize.height;
-	fs << "board_Width" << s.boardSize.width;
-	fs << "board_Height" << s.boardSize.height;
-	fs << "square_Size" << s.squareSize;
+	//if( !rvecs.empty() || !reprojErrs.empty() )
+	//fs << "nrOfFrames" << (int)max(rvecs.size(), reprojErrs.size());
+	//fs << "image_Width" << imageSize.width;
+	//fs << "image_Height" << imageSize.height;
+	//fs << "board_Width" << s.boardSize.width;
+	//fs << "board_Height" << s.boardSize.height;
+	//fs << "square_Size" << s.squareSize;
 
-	if( s.flag & CV_CALIB_FIX_ASPECT_RATIO )
-		fs << "FixAspectRatio" << s.aspectRatio;
+	//if( s.flag & CV_CALIB_FIX_ASPECT_RATIO )
+	//fs << "FixAspectRatio" << s.aspectRatio;
 
-	if( s.flag )
+	/*if( s.flag )
 	{
 		sprintf( buf, "flags: %s%s%s%s",
 			s.flag & CV_CALIB_USE_INTRINSIC_GUESS ? " +use_intrinsic_guess" : "",
@@ -276,16 +287,17 @@ void saveCameraParams( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& dis
 			s.flag & CV_CALIB_ZERO_TANGENT_DIST ? " +zero_tangent_dist" : "" );
 		cvWriteComment( *fs, buf, 0 );
 
-	}
+	}*/
 
-	fs << "flagValue" << s.flag;
-
+	//fs << "flagValue" << s.flag;
+	//fs << noOfDev->getPath(0);
 	fs << "Camera_Matrix" << cameraMatrix;
-	fs << "Distortion_Coefficients" << distCoeffs;
+	//cout << "Camera MAtrix is"<<cameraMatrix.at<double>(0,0)<<endl;
+	//fs << "Distortion_Coefficients" << distCoeffs;
 
-	fs << "Avg_Reprojection_Error" << totalAvgErr;
-	if( !reprojErrs.empty() )
-		fs << "Per_View_Reprojection_Errors" << Mat(reprojErrs);
+	//fs << "Avg_Reprojection_Error" << totalAvgErr;
+	//if( !reprojErrs.empty() )
+	//fs << "Per_View_Reprojection_Errors" << Mat(reprojErrs);
 
 	if( !rvecs.empty() && !tvecs.empty() )
 	{
@@ -302,21 +314,21 @@ void saveCameraParams( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& dis
 			r = rvecs[i].t();
 			t = tvecs[i].t();
 		}
-		cvWriteComment( *fs, "a set of 6-tuples (rotation vector + translation vector) for each view", 0 );
-		fs << "Extrinsic_Parameters" << bigmat;
+		//cvWriteComment( *fs, "a set of 6-tuples (rotation vector + translation vector) for each view", 0 );
+		//fs << "Extrinsic_Parameters" << bigmat;
 	}
 
-	if( !imagePoints.empty() )
+	/*if( !imagePoints.empty() )
 	{
 		Mat imagePtMat((int)imagePoints.size(), (int)imagePoints[0].size(), CV_32FC2);
 		for( int i = 0; i < (int)imagePoints.size(); i++ )
 		{
 			Mat r = imagePtMat.row(i).reshape(2, imagePtMat.cols);
 			Mat imgpti(imagePoints[i]);
-			imgpti.copyTo(r);
+			//imgpti.copyTo(r);
 		}
-		fs << "Image_points" << imagePtMat;
-	}
+		//fs << "Image_points" << imagePtMat;
+	}*/
 }
 
 bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat& distCoeffs,vector<vector<Point2f> > imagePoints )
@@ -327,11 +339,14 @@ bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat&
 
 	bool ok = runCalibration(s,imageSize, cameraMatrix, distCoeffs, imagePoints, rvecs, tvecs,
 		reprojErrs, totalAvgErr);
-	cout << (ok ? "Calibration succeeded" : "Calibration failed")
-		<< ". avg re projection error = "  << totalAvgErr ;
+	cout << (ok ? "Calibration succeeded" : "Calibration failed");
+	//	<< ". avg re projection error = "  << totalAvgErr ;
 
 	if( ok )
-		saveCameraParams( s, imageSize, cameraMatrix, distCoeffs, rvecs ,tvecs, reprojErrs,
+	{saveCameraParams( s, imageSize, cameraMatrix, distCoeffs, rvecs ,tvecs, reprojErrs,
 		imagePoints, totalAvgErr);
+	destroyAllWindows();
 	return ok;
+	
+	}
 }

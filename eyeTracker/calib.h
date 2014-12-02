@@ -2,18 +2,18 @@
 #include <sstream>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+
 using namespace std;
 using namespace cv;
 
 
-
-//
 class Settings
 {
 public:
@@ -53,6 +53,7 @@ public:
 	InputType inputType;
 	bool goodInput;
 	int flag;
+	VideoCapture* captureDevice;
 
 private:
 	string patternToUse;

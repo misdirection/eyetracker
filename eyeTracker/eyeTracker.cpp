@@ -5,6 +5,7 @@
 #include "ThreadData.h"
 #include "calib.h"
 
+
 VideoCapture* captureDevice = new VideoCapture;
 // data thread
 ThreadData *datas = new ThreadData;
@@ -74,6 +75,7 @@ int run()
 {
 	help();
 	Settings s;
+	vector<double> focal;
 	// Read the settings
 	files->getCalibFile()["Settings"] >> s;
 	files->getCalibFile().release();                                         // close Settings file
@@ -219,13 +221,16 @@ int run()
 			if(view.empty())
 				continue;
 			remap(view, rview, map1, map2, INTER_LINEAR);
-			imshow("Image View", rview);
+			//imshow("Image View", rview);
 			char c = (char)waitKey();
 			if( c  == ESC_KEY || c == 'q' || c == 'Q' )
 				break;
 		}
 	}
-
+	s.inputCapture.release();
+	focal.push_back(cameraMatrix.at<double>(0,0));
+	int i=0;
+	cout<<focal[i];
 	return -1;
 
 }
@@ -237,9 +242,12 @@ int main( int argc, const char** argv )
 	// get count of recognized cameras 
 
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
-	run();
+	
 	if (devices.size() > 0) 
 	{
+		run();
+		//cvDestroyWindow("Image View");
+		
 		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
 		// until you select an available device
 		int number=-1;

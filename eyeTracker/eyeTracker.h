@@ -16,7 +16,7 @@ public:
 	bool loadFaceCascade(), loadEyeCascade();
 	FileStorage getCalibFile();
 	bool loadCalibFile();
-
+	
 private:
 	CascadeClassifier face_cascade,eye_cascade;
 	FileStorage fs;
@@ -33,6 +33,7 @@ public:
 
 	string getName(int i);
 	string getPath(int i);
+	
 
 private:
 	vector<string> _name;
