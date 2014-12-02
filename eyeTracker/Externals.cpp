@@ -42,3 +42,14 @@ bool Externals::loadCalibFile(){
 
 	if(fs.isOpened()){return true;}else{return false;}
 }
+
+
+void Externals::setFocalLengths(double d){
+	files->focalLengths.push_back(d);
+};
+
+vector<double> Externals::getFocalLengths()
+{
+	return focalLengths;
+
+}

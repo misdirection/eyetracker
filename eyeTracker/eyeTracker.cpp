@@ -4,7 +4,7 @@
 #include "ThreadCapturing.h"
 #include "ThreadData.h"
 #include "calib.h"
-
+#include <fstream>
 
 VideoCapture* captureDevice = new VideoCapture;
 // data thread
@@ -71,7 +71,7 @@ void switchDevices(int number)
 	}
 }
 
-int run()
+int run(int j)
 {
 	help();
 	Settings s;
@@ -104,7 +104,7 @@ int run()
 		//-----  If no more image, or got enough, then stop calibration and show result -------------
 		if( mode == CAPTURING && imagePoints.size() >= (unsigned)s.nrFrames )
 		{
-			if( runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints))
+			if( runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints,j))
 				mode = CALIBRATED;
 			else
 				mode = DETECTION;
@@ -112,7 +112,7 @@ int run()
 		if(view.empty())          // If no more images then run calibration, save and stop loop.
 		{
 			if( imagePoints.size() > 0 )
-				runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints);
+				runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints,j);
 			break;
 		}
 
@@ -228,9 +228,8 @@ int run()
 		}
 	}
 	s.inputCapture.release();
-	focal.push_back(cameraMatrix.at<double>(0,0));
-	int i=0;
-	cout<<focal[i];
+	files->getFocalLengths().push_back(cameraMatrix.at<double>(0,0));
+	
 	return -1;
 
 }
@@ -242,12 +241,34 @@ int main( int argc, const char** argv )
 	// get count of recognized cameras 
 
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
-	
+
 	if (devices.size() > 0) 
 	{
-		run();
-		//cvDestroyWindow("Image View");
-		
+		for(int i =0; i <devices.size();i++)
+		{
+			ifstream input;
+			string str;
+			input.open(captureDeviceInfo->getName(i)+".txt");
+			if(!input.is_open())
+			{	
+				cout << "Can't find existing file, calibration starts for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
+				run(i);
+				cvDestroyWindow("Image View");
+			}
+			else
+			{
+				double focalLength;
+				cout << "loading calibration..." << endl;
+				getline(input, str);
+				getline(input, str);
+				focalLength =stod((str.substr(14)));
+				files->setFocalLengths(focalLength);
+				//cout << "Focal Length"<<focalLength<<endl;
+
+			}
+
+		}
+
 		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
 		// until you select an available device
 		int number=-1;

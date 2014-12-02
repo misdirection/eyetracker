@@ -43,7 +43,7 @@ public:
 	string outputFileName;      // The name of the file where to write
 	bool showUndistorsed;       // Show undistorted images after calibration
 	string input;               // The input ->
-
+	string _deviceName;
 
 
 	int cameraID;
@@ -91,6 +91,6 @@ static bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat
 						   vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
 						   vector<float>& reprojErrs,  double& totalAvgErr);
 
-bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat& distCoeffs,vector<vector<Point2f> > imagePoints );
+bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat& distCoeffs,vector<vector<Point2f> > imagePoints,int );
 //main run function
 

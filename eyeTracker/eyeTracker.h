@@ -16,10 +16,13 @@ public:
 	bool loadFaceCascade(), loadEyeCascade();
 	FileStorage getCalibFile();
 	bool loadCalibFile();
+	void setFocalLengths(double);
+	vector<double>getFocalLengths();
 	
 private:
 	CascadeClassifier face_cascade,eye_cascade;
 	FileStorage fs;
+	vector<double> focalLengths;
 };
 
 class DeviceInformation
