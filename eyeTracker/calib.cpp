@@ -46,13 +46,14 @@ void Settings::read(const FileNode& node)                          //Read serial
 	node["Calibrate_FixAspectRatio"] >> aspectRatio;
 	node["Write_DetectedFeaturePoints"] >> bwritePoints;
 	node["Write_extrinsicParameters"] >> bwriteExtrinsics;
-	node["Write_outputFileName"] >> outputFileName;
+	node["Write_outputFileName"] >> noOfDev->getPath(0);
 	node["Calibrate_AssumeZeroTangentialDistortion"] >> calibZeroTangentDist;
 	node["Calibrate_FixPrincipalPointAtTheCenter"] >> calibFixPrincipalPoint;
 	node["Input_FlipAroundHorizontalAxis"] >> flipVertical;
 	node["Show_UndistortedImage"] >> showUndistorsed;
 	node["Input"] >> input;
 	node["Input_Delay"] >> delay;
+
 	interprate();
 }
 void Settings::interprate()
@@ -66,6 +67,7 @@ void Settings::interprate()
 	if (squareSize <= 10e-6)
 	{
 		cerr << "Invalid square size " << squareSize << endl;
+
 		goodInput = false;
 	}
 	if (nrFrames <= 0)
