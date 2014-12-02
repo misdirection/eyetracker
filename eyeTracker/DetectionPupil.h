@@ -7,7 +7,7 @@ public:
 	DetectionPupil(void);
 	~DetectionPupil(void);
 
-	Point findEyeCenter(Mat*,Rect);
+	Point findEyeCenter(Mat,Rect);
 	Point detectPupil(Rect, Mat*);
 	void scaleToFastSize(const Mat&,Mat&);
 	Mat floodKillEdges(Mat&);
