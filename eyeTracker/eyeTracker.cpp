@@ -73,9 +73,7 @@ void switchDevices(int number)
 
 int run(int j)
 {
-	help();
 	Settings s;
-	vector<double> focal;
 	// Read the settings
 	files->getCalibFile()["Settings"] >> s;
 	files->getCalibFile().release();                                         // close Settings file
@@ -269,8 +267,7 @@ int main( int argc, const char** argv )
 					double focalLength;
 					cout << "loading calibrationfile for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
 					getline(input, str);
-					getline(input, str);
-					focalLength =stod((str.substr(14)));
+					focalLength =stod(str);
 					files->setFocalLengths(focalLength);
 					//cout << "Focal Length"<<focalLength<<endl;
 
