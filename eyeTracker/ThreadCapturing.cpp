@@ -60,7 +60,7 @@ void ThreadCapturing::Run()
 		line(frame,detCir.getCoordsOfcircleMatrix(3),detCir.getCoordsOfcircleMatrix(5), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		line(frame,detCir.getCoordsOfcircleMatrix(1),detCir.getCoordsOfcircleMatrix(7), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		imshow(_windowName, frame); //displays an image in the specified window
-		//cout << "fps:" << framesPerSeconds.getFPS() << endl;
+		cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);
 	}
 
