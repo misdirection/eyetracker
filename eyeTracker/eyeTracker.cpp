@@ -71,12 +71,12 @@ void switchDevices(int number)
 	}
 }
 
-int run(int j)
+int startCalibration(int m)
 {
 	Settings s;
 	// Read the settings
 	files->getCalibFile()["Settings"] >> s;
-	files->getCalibFile().release();                                         // close Settings file
+	files->getCalibFile().release();   // close Settings file
 
 	if (!s.goodInput)
 	{
@@ -102,7 +102,7 @@ int run(int j)
 		//-----  If no more image, or got enough, then stop calibration and show result -------------
 		if( mode == CAPTURING && imagePoints.size() >= (unsigned)s.nrFrames )
 		{
-			if( runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints,j))
+			if( runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints,m))
 				mode = CALIBRATED;
 			else
 				mode = DETECTION;
@@ -110,7 +110,7 @@ int run(int j)
 		if(view.empty())          // If no more images then run calibration, save and stop loop.
 		{
 			if( imagePoints.size() > 0 )
-				runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints,j);
+				runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints,m);
 			break;
 		}
 
@@ -228,7 +228,7 @@ int run(int j)
 	s.inputCapture.release();
 	files->getFocalLengths().push_back(cameraMatrix.at<double>(0,0));
 
-	return -1;
+	return 0;
 
 }
 
@@ -259,7 +259,7 @@ int main( int argc, const char** argv )
 				if(!input.is_open())
 				{	
 					cout << "Can't find an existing file, calibration starts for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
-					run(i);
+					startCalibration(i);
 					cvDestroyWindow("Image View");
 				}
 				else
@@ -272,8 +272,9 @@ int main( int argc, const char** argv )
 					//cout << "Focal Length"<<focalLength<<endl;
 
 				}
-
+			cout <<"FocalLength: " << files->getFocalLengths()[i] << endl;
 			}
+
 			cout << "Calibration of all devices done!\n-----------------------------------------------------------------" << endl;
 			option =2;
 		}
