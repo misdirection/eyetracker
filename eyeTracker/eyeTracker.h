@@ -12,10 +12,12 @@ class Externals
 public:
 	Externals(void);
 	~Externals(void);
-	CascadeClassifier getFaceCascade(),getEyeCascade();
+	//CascadeClassifier getFaceCascade(),getEyeCascade();
 	bool loadFaceCascade(), loadEyeCascade();
-
+	FileNode getFaceCascade(),getEyeCascade();
+	
 private:
+	FileStorage storageFace, storageEye;
 	CascadeClassifier face_cascade,eye_cascade;
 };
 

@@ -1,7 +1,7 @@
 #include "DetectionPupil.h"
 
 
-DetectionPupil::DetectionPupil(void)
+DetectionPupil::DetectionPupil(void) : _helper(0,0)
 {
 }
 
@@ -10,26 +10,64 @@ DetectionPupil::~DetectionPupil(void)
 {
 }
 
-Point DetectionPupil::detectPupil(Rect eye, Mat *frame)
+bool DetectionPupil::calcHelper()
 {
-	if (eye != Rect(0,0,0,0))
+	Rect rectForHelper(_working_frame.cols*0.15,_working_frame.rows*0.15,_working_frame.cols*0.7,_working_frame.rows*0.7);
+	vector<Point> pointsForHelper;
+	Mat test =_working_frame.clone();
+	test(rectForHelper);
+	threshold(test, test,  0, 220, CV_THRESH_BINARY );
+	bitwise_not( test, test );
+	Canny(test, test, 0, 255, 3);
+	vector<vector<Point>> contours;
+	vector<Point> approx,circles;
+    findContours( test, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE );
+	for (int i = 0; i < contours.size(); i++)
 	{
-
-		cvtColor((*frame)(eye), _working_frame, CV_BGR2GRAY );
-		Point pupil = findEyeCenter( _working_frame,eye);
-		pupil.x+=eye.x;
-		pupil.y+=eye.y;
-		return pupil;
+        double area = contourArea(contours[i]);
+        cv::Rect r = boundingRect(contours[i]);
+		pointsForHelper.push_back(Point(r.x+rectForHelper.x,r.y+=rectForHelper.y));
 	}
+	if(pointsForHelper.size()>0)
+	{
+	int x=0,y=0,x2=0,y2=0,count=0;
+	for (int p=0;p<pointsForHelper.size();p++)
+	{
+		x+=pointsForHelper[p].x;y+=pointsForHelper[p].y;
+	}
+	x/=pointsForHelper.size();y/=pointsForHelper.size();
+	for (int p=0;p<pointsForHelper.size();p++)
+	{
+		if (nearlyEqual(pointsForHelper[p].x,x,40) && nearlyEqual(pointsForHelper[p].y,y,40))
+		{
+			x2+=pointsForHelper[p].x;y2+=pointsForHelper[p].y;
+			count++;
+		}
+	}
+	pointsForHelper.clear();
+	if (count>0) {_helper=Point(x2/count+_eyeRect.x,y2/count+_eyeRect.y);return true;}
+	}
+	return false;
 }
 
-Point DetectionPupil::findEyeCenter(Mat eyeArea,Rect eye) {
-	Mat eyeROIUnscaled = eyeArea;
-	Mat eyeROI;
-	scaleToFastSize(eyeROIUnscaled, eyeROI);
+
+Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect) {
+	_eyeRect=eyeRect;
+	cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
+	equalizeHist( _working_frame, _working_frame );
+	if (calcHelper()) 
+	{
+		_eyeRect.x=_helper.x-0.3*eyeRect.width;
+		_eyeRect.y=_helper.y-0.3*eyeRect.height;
+		_eyeRect.width=0.4*_eyeRect.width;
+		_eyeRect.height=0.6*_eyeRect.height;
+		cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
+		equalizeHist( _working_frame, _working_frame );
+	}
+	scaleToFastSize(_working_frame, _working_frame);
 	//-- Find the gradient
-	Mat gradientX = computeMatXGradient(eyeROI);
-	Mat gradientY = computeMatXGradient(eyeROI.t()).t();
+	Mat gradientX = computeMatXGradient(_working_frame);
+	Mat gradientY = computeMatXGradient(_working_frame.t()).t();
 	//-- Normalize and threshold the gradient
 	// compute all the magnitudes
 	cv::Mat mags = matrixMagnitude(gradientX, gradientY);
@@ -38,10 +76,10 @@ Point DetectionPupil::findEyeCenter(Mat eyeArea,Rect eye) {
 	//double gradientThresh = kGradientThreshold;
 	//double gradientThresh = 0;
 	//normalize
-	for (int y = 0; y < eyeROI.rows; ++y) {
+	for (int y = 0; y < _working_frame.rows; ++y) {
 		double *Xr = gradientX.ptr<double>(y), *Yr = gradientY.ptr<double>(y);
 		const double *Mr = mags.ptr<double>(y);
-		for (int x = 0; x < eyeROI.cols; ++x) {
+		for (int x = 0; x < _working_frame.cols; ++x) {
 			double gX = Xr[x], gY = Yr[x];
 			double magnitude = Mr[x];
 			if (magnitude > gradientThresh) {
@@ -56,7 +94,7 @@ Point DetectionPupil::findEyeCenter(Mat eyeArea,Rect eye) {
 	//imshow(debugWindow,gradientX);
 	//-- Create a blurred and inverted image for weighting
 	Mat weight;
-	GaussianBlur( eyeROI, weight, Size( 5, 5 ), 0, 0 );
+	GaussianBlur( _working_frame, weight, Size( 5, 5 ), 0, 0 );
 	for (int y = 0; y < weight.rows; ++y) {
 		unsigned char *row = weight.ptr<unsigned char>(y);
 		for (int x = 0; x < weight.cols; ++x) {
@@ -65,7 +103,7 @@ Point DetectionPupil::findEyeCenter(Mat eyeArea,Rect eye) {
 	}
 	//imshow(debugWindow,weight);
 	//-- Run the algorithm!
-	Mat outSum = cv::Mat::zeros(eyeROI.rows,eyeROI.cols,CV_64F);
+	Mat outSum = cv::Mat::zeros(_working_frame.rows,_working_frame.cols,CV_64F);
 	// for each possible center
 	// printf("Eye Size: %ix%i\n",outSum.cols,outSum.rows);
 	for (int y = 0; y < weight.rows; ++y) {
@@ -100,11 +138,17 @@ Point DetectionPupil::findEyeCenter(Mat eyeArea,Rect eye) {
 		// redo max
 		cv::minMaxLoc(out, NULL,&maxVal,NULL,&maxP,mask);
 	}
-	return unscalePoint(maxP,eye);
+	maxP=unscalePoint(maxP,Point(_eyeRect.width,_eyeRect.height));
+	maxP.x+=_eyeRect.x;maxP.y+=_eyeRect.y;
+	return maxP;
 }
 
-Point DetectionPupil::unscalePoint(Point p, Rect origSize) {
-	float ratio = (((float)50.0)/origSize.width);
+//resizing the Eye region by dividing eye width with rows, cols
+void DetectionPupil::scaleToFastSize(const cv::Mat &src,cv::Mat &dst) {
+	cv::resize(src, dst, cv::Size(50,(((float)50)/src.cols) * src.rows));
+}
+Point DetectionPupil::unscalePoint(Point p, Point origSize) {
+	float ratio = (((float)50.0)/origSize.x);
 	int x = (p.x / ratio);
 	int y = (p.y / ratio);
 	return Point(x,y);
@@ -114,10 +158,7 @@ bool DetectionPupil::inMat(Point p,int rows,int cols) {
 	return p.x >= 0 && p.x < cols && p.y >= 0 && p.y < rows;
 }
 
-//resizing the Eye region by dividing eye width with rows, cols
-void DetectionPupil::scaleToFastSize(const cv::Mat &src,cv::Mat &dst) {
-	cv::resize(src, dst, cv::Size(50,(((float)50)/src.cols) * src.rows));
-}
+
 bool DetectionPupil::floodShouldPushPoint(const cv::Point &np, const cv::Mat &mat) {
 	return inMat(np, mat.rows, mat.cols);
 }
@@ -213,6 +254,12 @@ Mat DetectionPupil::matrixMagnitude(const cv::Mat &matX, const cv::Mat &matY) {
 	return mags;
 }
 
+
+bool DetectionPupil::nearlyEqual(int x,int y,int z)
+{
+	if (x <= (1.00+(((double)z)/100))*y && x >= (1.00-(((double)z)/100))*y) {return true;}
+	else {return false;}
+}
 
 
 double DetectionPupil::computeDynamicThreshold(const cv::Mat &mat, double stdDevFactor) {

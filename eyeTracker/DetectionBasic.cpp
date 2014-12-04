@@ -4,10 +4,15 @@
 #include "DetectionBasic.h"
 
 
-DetectionBasic::DetectionBasic(void)
+DetectionBasic::DetectionBasic(void) 
 {
+	_face_cascade.read(files->getFaceCascade());
+	_eye_cascade.read(files->getEyeCascade());
+
 	eyes.push_back(Rect(0,0,0,0));
 	eyes.push_back(Rect(0,0,0,0));
+	pupil.push_back(Point(0,0));
+	pupil.push_back(Point(0,0));
 }
 
 
@@ -24,6 +29,16 @@ void DetectionBasic::detect(Mat* frame)
 		calculateEyeAreas();
 		detectEye();
 	}
+	detectPupils();
+}
+
+void DetectionBasic::detectPupils()
+{
+	for (int i=0;i<eyes.size();i++)
+	{
+		// detecting the pupil in the eyeArea-part and adding x&y of beginning of eyeArea
+		if (eyes[i] != Rect(0,0,0,0)) {pupil[i]=detPup.findEyeCenter(_frame,eyes[i]);}
+	}
 }
 
 void DetectionBasic::detectEye()
@@ -37,7 +52,7 @@ void DetectionBasic::detectEye()
 	cvtColor( (*_frame)(eyes[i]), _working_frame, CV_BGR2GRAY );
 	equalizeHist( _working_frame, _working_frame );
 	GaussianBlur( _working_frame, _working_frame, cv::Size( 5, 5 ), 1);
-	files->getEyeCascade().detectMultiScale(_working_frame, _eyes, 1.05, 3, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
+	_eye_cascade.detectMultiScale(_working_frame, _eyes, 1.05, 3, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
 	// if an eye is detected inside this area, take this as new eye. otherwise we keep the calculated eye area
 	if (_eyes.size()>0)
 	{
@@ -70,7 +85,7 @@ bool DetectionBasic::detectFace()
 	double heightFactor=_frame->rows/240.00;
 	resize(_working_frame,_working_frame,Size(int(_working_frame.cols/widthFactor),int(_working_frame.rows/heightFactor)), 0, 0, INTER_LINEAR );
 	vector<Rect> _faces; //for results of cascadefiles
-	files->getFaceCascade().detectMultiScale(_working_frame, _faces, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50) );
+	_face_cascade.detectMultiScale(_working_frame, _faces, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50) );
 	// if a face was detected
 	if(_faces.size()>0)
 	{
@@ -94,11 +109,17 @@ bool DetectionBasic::detectFace()
 	 return &face;
  }
 
- Rect DetectionBasic::getEyeRect(int position)
+ Rect* DetectionBasic::getEyeRect(int position)
  {
-	 return eyes[position];
+	 return &eyes[position];
  }
 
+  Point* DetectionBasic::getPupilPoint (int position)
+ {
+	 return &pupil[position];
+ }
+
+ 
  void DetectionBasic::setRectangleZero(Rect r)
  {
 	r.x=0; 

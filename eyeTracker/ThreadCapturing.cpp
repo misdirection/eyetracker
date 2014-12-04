@@ -4,6 +4,7 @@
 #include "DetectionCircles.h"
 #include "DetectionPupil.h"
 
+
 ThreadCapturing::ThreadCapturing(void){};
 ThreadCapturing::~ThreadCapturing(void){
 	destroyWindow(_windowName);
@@ -37,7 +38,6 @@ void ThreadCapturing::Run()
 	fps framesPerSeconds;
 	DetectionBasic det;
 	DetectionCircles detCir;
-	DetectionPupil detPupil;
 
 	while(_running)
 	{
@@ -47,15 +47,16 @@ void ThreadCapturing::Run()
 		det.detect(&frame);
 		detCir.detect(&frame,det.getFaceRect());
 
-		//stringstream text; text << framesPerSeconds.getFPS();
-		stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
+
+		stringstream text; text << framesPerSeconds.getFPS();
+		//stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
 		putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
 		rectangle( frame,*det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
-		rectangle( frame,det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
-		rectangle( frame,det.getEyeRect(1), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,*det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
+		rectangle( frame,*det.getEyeRect(1), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		rectangle( frame,*detCir.getCircleArea(), Scalar( 0, 255, 0 ), 1, 8, 0 );
-		circle(frame,detPupil.detectPupil(det.getEyeRect(0),&frame), 2, Scalar( 0, 255, 0 ), 1, 8, 0 );
-		circle(frame,detPupil.detectPupil(det.getEyeRect(1),&frame), 2, Scalar( 0, 255, 0 ), 1, 8, 0 );
+		circle(frame,*det.getPupilPoint(0), 2, Scalar( 0, 255, 0 ), 1, 8, 0 );
+		circle(frame,*det.getPupilPoint(1), 2, Scalar( 0, 255, 0 ), 1, 8, 0 );
 
 
 		//for(int x=0;x<(detCir.getCoordsOfcircleMatrix()).size();x++)

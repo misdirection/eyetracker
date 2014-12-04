@@ -2,7 +2,8 @@
 #include "eyeTracker.h"
 
 
-Externals::Externals(void)
+Externals::Externals(void) :	storageFace(FileStorage("haarcascade_frontalface_alt2.xml", FileStorage::READ)),
+								storageEye(FileStorage("haarcascade_eye.xml", FileStorage::READ))
 {
 
 }
@@ -12,22 +13,23 @@ Externals::~Externals(void)
 {
 }
 
-CascadeClassifier Externals::getFaceCascade()
-{
-	return face_cascade;
-}
-CascadeClassifier Externals::getEyeCascade()
-{
-	return eye_cascade;
-}
 
+
+FileNode Externals::getFaceCascade()
+{
+	return storageFace.getFirstTopLevelNode();
+}
+FileNode Externals::getEyeCascade()
+{
+	return storageEye.getFirstTopLevelNode();
+}
 bool Externals::loadFaceCascade()
 {
-	return face_cascade.load("haarcascade_frontalface_alt2.xml");
+	return face_cascade.read(storageFace.getFirstTopLevelNode());
 }
 
 bool Externals::loadEyeCascade()
 {
-	return eye_cascade.load("haarcascade_eye.xml");
+	return eye_cascade.read(storageEye.getFirstTopLevelNode());
 }
 

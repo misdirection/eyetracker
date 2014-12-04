@@ -343,42 +343,6 @@ bool DetectionCircles::fillCircleMatrix()
 	circleMatrix.clear();return false;
 }
 
-/*
-	if (row0 && row2 && col0 && col1 && col2 || row0 && row1 && row2 && col0 && col2)
-	{
-		while (calc3rdOutOf2(0,1,2) | calc3rdOutOf2(3,4,5) | calc3rdOutOf2(6,7,8) | calc3rdOutOf2(0,3,6) | calc3rdOutOf2(1,4,7) | calc3rdOutOf2(2,5,8));
-		// get basic horizontal/vertical values hortAndVert 0= horizontal, 1=vertical
-		bool correctDistancesBetween = calculate_distanceBetweenPointsInMatrixAreNearlySame();
-		// only if vertical and horizontal distances between neighbors are the nearly same, we have enough points.
-		// to avoid this (:	
-		// 0 0 X				0 0 X
-		// 0 X X will be set	X 0 X and cannot be calculated (if is movable for 1 col to the left and right)
-		// 0 0 X				0 0 X
-		//also compare with calibrated value 
-		if (correctDistancesBetween && nearlyEqual(_distanceBetweenPoints[0],_distanceBetweenPointsInMatrix[0],40))
-		{
-			//while (calc3rdOutOf2(0,1,2) | calc3rdOutOf2(3,4,5) | calc3rdOutOf2(6,7,8) | calc3rdOutOf2(0,3,6) | calc3rdOutOf2(1,4,7) | calc3rdOutOf2(2,5,8));
-			// if there are still some points missing
-			bool change=true;
-			while (change)
-			{
-				for (int cir=0;cir<circleMatrix.size();cir++)
-				{
-					change=setNeighbors(cir);
-				}
-			}
-		}
-		else {circleMatrix.clear();}
-	}
-	else {circleMatrix.clear();}
-	// if circleMatrix was successful created
-	if (circleMatrix.size()>0)
-	{
-		_distanceBetweenPoints[0]=_distanceBetweenPointsInMatrix[0];
-		_distanceBetweenPoints[1]=_distanceBetweenPointsInMatrix[1];
-	}
-*/
-
 
 
 bool DetectionCircles::calculateCircleArea(Rect* face)
