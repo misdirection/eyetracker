@@ -239,76 +239,61 @@ int main( int argc, const char** argv )
 	// get count of recognized cameras 
 	cout << "Welcome to the Eyetracker9000!\n-----------------------------------------------------------------" << endl;
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
-	if (devices.size() > 0) 
+	cout << "Starting calibration for all available devices ("<<devices.size() << ")..."<< endl;
+	//Callibration
+	for(int i =0; i <devices.size();i++)
 	{
-		cout << "Press 1 to start the calibration for all available devices." << endl;
-		cout << "Press 2 to skip calibration and start eyetracking." << endl;
-		cout << "Enter number: ";
-		int option =0;
-		cin >> option;
-		cout << "-----------------------------------------------------------------" << endl;
-		if(option == 1)
-		{
-			cout << "Starting calibration for all available devices ("<<devices.size() << ")..."<< endl;
-			//Callibration
-			for(int i =0; i <devices.size();i++)
-			{
-				ifstream input;
-				string str;
-				input.open(captureDeviceInfo->getName(i)+".txt");
-				if(!input.is_open())
-				{	
-					cout << "Can't find an existing file, calibration starts for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
-					startCalibration(i);
-					cvDestroyWindow("Image View");
-				}
-				else
-				{
-					double focalLength;
-					cout << "loading calibrationfile for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
-					getline(input, str);
-					focalLength =stod(str);
-					files->setFocalLengths(focalLength);
-					//cout << "Focal Length"<<focalLength<<endl;
-
-				}
-			cout <<"FocalLength: " << files->getFocalLengths()[i] << endl;
-			}
-
-			cout << "Calibration of all devices done!\n-----------------------------------------------------------------" << endl;
-			option =2;
+		ifstream input;
+		string str;
+		input.open(captureDeviceInfo->getName(i)+".txt");
+		if(!input.is_open())
+		{	
+			cout << "Can't find an existing file, calibration starts for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
+			startCalibration(i);
+			cvDestroyWindow("Image View");
 		}
-		if(option==2)
+		else
 		{
-			cout << "Starting the eyetracker...." << endl;
-			//Eyetracking
-			cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
-			// until you select an available device
-			int number=-1;
-			while(number<0 || number >=devices.size() )
-			{
-				while(!_kbhit());
-				string temp; temp= getch(); number = atoi(temp.c_str());
-				if (number == 0 && !(temp=="0")) {number=-1;}
-			}
-			// activate the selected device
-			switchDevices(number);
-		}
-		char key;
+			double focalLength;
+			cout << "loading calibrationfile for " << captureDeviceInfo->getName(i) <<"!" <<  endl;
+			getline(input, str);
+			focalLength =stod(str);
+			files->setFocalLengths(focalLength);
+			//cout << "Focal Length"<<focalLength<<endl;
 
-		while((key = cvWaitKey(0)) != 0x1b)
+		}
+	}
+
+	cout << "Calibration of all devices done!\n-----------------------------------------------------------------" << endl;
+	cout << "Starting the eyetracker...." << endl;
+	//Eyetracking
+	cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
+	// until you select an available device
+	int number=-1;
+	while(number<0 || number >=devices.size() )
+	{
+		while(!_kbhit());
+		string temp; temp= getch(); number = atoi(temp.c_str());
+		if (number == 0 && !(temp=="0")) {number=-1;}
+	}
+	// activate the selected device
+	switchDevices(number);
+
+	char key;
+
+	while((key = cvWaitKey(0)) != 0x1b)
+	{
+
+		switch(key)
 		{
-
-			switch(key)
-			{
-			case '0': switchDevices(0); break;
-			case '1': switchDevices(1); break;
-			case '2': switchDevices(2); break;
-			case '3': switchDevices(3); break;
-			case '4': switchDevices(4); break;
-			case '5': switchDevices(5); break;
-			}
+		case '0': switchDevices(0); break;
+		case '1': switchDevices(1); break;
+		case '2': switchDevices(2); break;
+		case '3': switchDevices(3); break;
+		case '4': switchDevices(4); break;
+		case '5': switchDevices(5); break;
 		}
+
 	}
 	return (0);
 }
