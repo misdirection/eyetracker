@@ -48,8 +48,8 @@ void ThreadCapturing::Run()
 		detCir.detect(&frame,det.getFaceRect());
 
 
-		stringstream text; text << framesPerSeconds.getFPS();
-		//stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
+		//stringstream text; text << framesPerSeconds.getFPS();
+		stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
 		putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
 		rectangle( frame,*det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		rectangle( frame,*det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );

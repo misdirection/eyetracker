@@ -7,6 +7,8 @@ DetectionCircles::DetectionCircles(void) :_distanceBetweenPoints(0),_rotationOfC
 	_distanceOfPoints.push_back(Point(0,0));
 	_rotationCurrentFrame.push_back(0);
 	_rotationCurrentFrame.push_back(0);
+	_rotationOfCalib.push_back(0);
+	_rotationOfCalib.push_back(0);
 }
 
 
@@ -20,7 +22,7 @@ void DetectionCircles::detect(Mat* frame, Rect* face)
 	_frame=frame;
 	if (calculateCircleArea(face))
 	{
-	circles.clear();circleMatrix.clear();
+	circles.clear();circleMatrix[0].clear();
 	// if at least 4 circles were recognized
 	if (detectCircles())
 	{
@@ -30,12 +32,12 @@ void DetectionCircles::detect(Mat* frame, Rect* face)
 		else if ((_rotationOfCalib.empty() || _distanceOfPoints[0]==Point(0,0) || _distanceOfPoints[1]==Point(0,0)) && fillCircleMatrix()) 
 		{	
 			// setup basic rotation
-			_rotationOfCalib.push_back(atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI);
-			_rotationOfCalib.push_back(atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI);
+			_rotationOfCalib[0]=(atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI);
+			_rotationOfCalib[1]=(atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI);
 		}
 		else if (!_rotationOfCalib.empty() && fillCircleMatrix())
 		{
-			_rotationCurrentFrame[0]=  atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI-_rotationOfCalib[0];
+			_rotationCurrentFrame[0]= atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI-_rotationOfCalib[0];
 			_rotationCurrentFrame[1]= atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI-_rotationOfCalib[1];
 		}
 		//now use distanceBetweenPoints and focal length to calculate basic distance
@@ -132,7 +134,6 @@ else if(circleMatrix[inMatrix][a]!=nullptr && circleMatrix[inMatrix][b]!=nullptr
 {
 	circleMatrix[inMatrix][c]= new Point(circleMatrix[inMatrix][b]->x+(circleMatrix[inMatrix][b]->x-circleMatrix[inMatrix][a]->x),
 										 circleMatrix[inMatrix][b]->y+(circleMatrix[inMatrix][b]->y-circleMatrix[inMatrix][a]->y));
-//_distanceOfPoints[direction].push_back(tempdist);
 change=true;
 }
 return change;
@@ -142,6 +143,9 @@ return change;
 	// calculate existing distances
 void DetectionCircles::calcDistances()
 {
+	_distanceOfPoints_tmp.clear();
+	_distanceOfPoints_tmp[0].push_back(Point(0,0));
+	_distanceOfPoints_tmp[1].push_back(Point(0,0));
 	calcDistances_help(0,1,2,0,0);calcDistances_help(3,4,5,0,0);calcDistances_help(6,7,8,0,0);calcDistances_help(0,3,6,1,0);calcDistances_help(1,4,7,1,0);calcDistances_help(2,5,8,1,0);
 	for(int i=0;i<2;i++)
 	{
@@ -149,10 +153,18 @@ void DetectionCircles::calcDistances()
 		{
 			_distanceOfPoints_tmp[i][0]+=_distanceOfPoints_tmp[i][j];
 		}
-		_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x/(_distanceOfPoints_tmp[i].size()-1);
-		_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y/(_distanceOfPoints_tmp[i].size()-1);
+		if (_distanceOfPoints_tmp[i].size() >1)
+		{
+			_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x/(_distanceOfPoints_tmp[i].size()-1);
+			_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y/(_distanceOfPoints_tmp[i].size()-1);
+		}
+		else if (_distanceOfPoints_tmp[i].size() ==1)
+		{
+			_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x;
+			_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y;
+		}
 	}
-	_distanceOfPoints_tmp.clear();
+	
 }
 
 void DetectionCircles::calcDistances_help(int a,int b,int c,int direction, int inMatrix)
@@ -211,7 +223,7 @@ bool DetectionCircles::fillCircleMatrix_matrixPossible()
 	// getting corner points
 	// set first circle in every corner
 	// get xMin and yMin
-	int xMin=circles[0].x,yMin=circles[0].y,xMax=circles[0].x,yMax=circles[0].y;;
+	int xMin=circles[0].x,yMin=circles[0].y,xMax=circles[0].x,yMax=circles[0].y;
 	for (int i=1;i<circles.size();i++)
 	{
 		if (circles[i].x < xMin) {xMin=circles[i].x;}
@@ -230,10 +242,11 @@ bool DetectionCircles::fillCircleMatrix_matrixPossible()
 	else
 	{
 		// distance must be nearly the one from previous
-		if (_noDetectionCount<6 && (!nearlyEqual(distanceOfPoints(&Point(xMid,yMin),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[0]),40) || !nearlyEqual(distanceOfPoints(&Point(xMin,yMid),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[1]),40))) 
+		if ((!nearlyEqual(distanceOfPoints(&Point(xMid,yMin),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[0]),40) || !nearlyEqual(distanceOfPoints(&Point(xMin,yMid),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[1]),40))) 
 		{
 			_noDetectionCount++;
-			if (_noDetectionCount==5) {_noDetectionCount=0;_distanceOfPoints[0]=Point(0,0);_distanceOfPoints[1]=Point(0,0);return false;}
+			if (_noDetectionCount==6) {_noDetectionCount=0;_distanceOfPoints[0]=Point(0,0);_distanceOfPoints[1]=Point(0,0);}
+			return false;
 		}
 	}
 	bool row0=false,row1=false,row2=false,col0=false,col1=false,col2=false;
@@ -295,14 +308,13 @@ bool DetectionCircles::fillCircleMatrix_result2()
 	{
 	circleMatrix[i]=circleMatrix[0];
 	}
-	bool change=true;
-	while (change)
-	{
 		for (int cir=0;cir<circleMatrix[1].size();cir++)
 		{
-			change=setNeighbors(cir,1);
+			setNeighbors(cir,1);
 		}
-	}
+	
+
+
 	return true;
 }
 
@@ -363,8 +375,10 @@ bool DetectionCircles::calculateCircleArea(Rect* face)
 bool DetectionCircles::detectCircles()
 {
 	cvtColor( (*_frame)(circleArea), _working_frame, CV_BGR2GRAY );
-	threshold(_working_frame, _working_frame,  120, 255, CV_THRESH_BINARY );
-	Canny(_working_frame, _working_frame, 255, 255, 3);
+	equalizeHist(_working_frame,_working_frame);
+	threshold(_working_frame, _working_frame,  160, 255, CV_THRESH_BINARY );
+	Canny(_working_frame, _working_frame, 200, 255, 3);
+	//imshow("web cam device 0",_working_frame);
 	vector<vector<Point>> contours;
 	vector<Point> approx;
     findContours( _working_frame, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE );
@@ -374,13 +388,13 @@ for (int i = 0; i < contours.size(); i++)
     // to the contour perimeter
     cv::approxPolyDP(Mat(contours[i]),approx,arcLength(Mat(contours[i]), true) * 0.02,true);
 
-	if (approx.size() > 6)
+	if (approx.size() > 5)
 	{
         // Detect and label circles
         double area = contourArea(contours[i]);
         cv::Rect r = boundingRect(contours[i]);
         int radius = r.width / 2;
-        if (abs(1 - ((double)r.width / r.height)) <= 0.2 & abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
+        if (abs(1 - ((double)r.width / r.height)) <= 0.3 & abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.3)
         {
 			// check if circle already in vector
 			int x = r.x+r.width/2;

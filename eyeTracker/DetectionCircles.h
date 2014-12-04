@@ -60,6 +60,5 @@ private:
 	// helpers
 	vector<double> _distanceBetweenPointsTopResults_temp;
 	vector<double> _distanceBetweenPointsInMatrix;
-
 };
 

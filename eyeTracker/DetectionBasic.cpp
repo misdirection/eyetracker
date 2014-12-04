@@ -8,7 +8,6 @@ DetectionBasic::DetectionBasic(void)
 {
 	_face_cascade.read(files->getFaceCascade());
 	_eye_cascade.read(files->getEyeCascade());
-
 	eyes.push_back(Rect(0,0,0,0));
 	eyes.push_back(Rect(0,0,0,0));
 	pupil.push_back(Point(0,0));
