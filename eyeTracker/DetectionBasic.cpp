@@ -4,7 +4,7 @@
 #include "DetectionBasic.h"
 
 
-DetectionBasic::DetectionBasic(void) 
+DetectionBasic::DetectionBasic(void) : _distanceOfPupils(0),_distanceOfPupilsCounter(0)
 {
 	_face_cascade.read(files->getFaceCascade());
 	_eye_cascade.read(files->getEyeCascade());
@@ -38,8 +38,29 @@ void DetectionBasic::detectPupils()
 		// detecting the pupil in the eyeArea-part and adding x&y of beginning of eyeArea
 		if (eyes[i] != Rect(0,0,0,0)) {pupil[i]=detPup.findEyeCenter(_frame,eyes[i]);}
 	}
-}
-
+	if (pupil.size()==2)
+	{
+		if (_distanceOfPupils == 0)
+		{_distanceOfPupils=sqrt(pow((pupil[1].x-pupil[0].x),2)+pow((pupil[1].x-pupil[0].x),2));}
+		else 
+		{
+			if (nearlyEqual(_distanceOfPupils,sqrt(pow((pupil[1].x-pupil[0].x),2)+pow((pupil[1].x-pupil[0].x),2)),5))
+			{
+				_distanceOfPupilsCounter=0;
+				_distanceOfPupils=sqrt(pow((pupil[1].x-pupil[0].x),2)+pow((pupil[1].x-pupil[0].x),2));
+			}
+			else
+			{
+				pupil[0]=Point(0,0);
+				pupil[1]=Point(0,0);
+				_distanceOfPupilsCounter++;
+				if (_distanceOfPupilsCounter==5) {_distanceOfPupils=0;}
+			}
+		}
+	}
+}	
+		
+		
 void DetectionBasic::detectEye()
 {
 	// for each eye area
@@ -94,8 +115,8 @@ bool DetectionBasic::detectFace()
 	_faces[0].width=(int)((double)_faces[0].width*widthFactor);
 	_faces[0].height=(int)((double)_faces[0].height*heightFactor);
 	// 2. check if it the same face like before, then no new face detected, else return new face
-	if (nearlyEqual(face.width,_faces[0].width) && nearlyEqual(face.height,_faces[0].height) && 
-		nearlyEqual(face.x,_faces[0].x) && nearlyEqual(face.y,_faces[0].y))
+	if (nearlyEqual(face.width,_faces[0].width,5) && nearlyEqual(face.height,_faces[0].height,5) && 
+		nearlyEqual(face.x,_faces[0].x,5) && nearlyEqual(face.y,_faces[0].y,5))
 		{return false;}
 	else {face=_faces[0];return true;}
 	}
@@ -133,10 +154,9 @@ bool DetectionBasic::detectFace()
 	 else return false;
  }
 
-
-
-bool DetectionBasic::nearlyEqual(int x,int y)
+bool DetectionBasic::nearlyEqual(int x,int y,int z)
 {
-	if (x <= 1.05*y && x >= 0.95*y) {return true;}
+	if (x <= (1.00+(((double)z)/100))*y && x >= (1.00-(((double)z)/100))*y) {return true;}
 	else {return false;}
 }
+

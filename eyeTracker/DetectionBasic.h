@@ -24,8 +24,7 @@ public:
 	//helper functions
 	void setRectangleZero(Rect);
 	bool isRectangleZero(Rect);
-	bool nearlyEqual(int,int);
-	
+	bool nearlyEqual(int,int,int);
 private:
 	Mat* _frame; 
 	Mat _working_frame;
@@ -33,7 +32,8 @@ private:
 	vector<Rect> eyes;
 	vector<Point> pupil;
 	DetectionPupil detPup;
-
+	double _distanceOfPupils;
+	int _distanceOfPupilsCounter;
 	CascadeClassifier _face_cascade,_eye_cascade;
 };
 

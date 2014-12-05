@@ -3,19 +3,16 @@
 
 DetectionCircles::DetectionCircles(void) :_distanceBetweenPoints(0),_rotationOfCalib(0),_noDetectionCount(0)
 {
-	_distanceOfPoints.push_back(Point(0,0));
-	_distanceOfPoints.push_back(Point(0,0));
 	_rotationCurrentFrame.push_back(0);
 	_rotationCurrentFrame.push_back(0);
-	_rotationOfCalib.push_back(0);
-	_rotationOfCalib.push_back(0);
+	//_rotationOfCalib.push_back(0);
+	//_rotationOfCalib.push_back(0);
 }
 
 
 DetectionCircles::~DetectionCircles(void)
 {
 }
-
 
 void DetectionCircles::detect(Mat* frame, Rect* face)
 {
@@ -29,18 +26,20 @@ void DetectionCircles::detect(Mat* frame, Rect* face)
 		// no basic distance is calculated
 		if (_distanceBetweenPoints == 0) {calculateDistanceBetweenPoints();}
 		// if basic distance exists, but no first matrix creations for getting different x AND y distances
-		else if ((_rotationOfCalib.empty() || _distanceOfPoints[0]==Point(0,0) || _distanceOfPoints[1]==Point(0,0)) && fillCircleMatrix()) 
-		{	
-			// setup basic rotation
-			_rotationOfCalib[0]=(atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI);
-			_rotationOfCalib[1]=(atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI);
-		}
-		else if (!_rotationOfCalib.empty() && fillCircleMatrix())
+		else if (fillCircleMatrix())
 		{
-			_rotationCurrentFrame[0]= atan2(_distanceOfPoints[0].y,_distanceOfPoints[0].x)*180/CV_PI-_rotationOfCalib[0];
-			_rotationCurrentFrame[1]= atan2(_distanceOfPoints[1].x,_distanceOfPoints[1].y)*180/CV_PI-_rotationOfCalib[1];
+			if (_rotationOfCalib.empty() && _distOfPoints[0]!=0.0 && _distOfPoints[3]!=0) 
+			{	
+				// setup basic rotation
+				_rotationOfCalib.push_back(atan2(_distOfPoints[1],_distOfPoints[0])*180/CV_PI);
+				_rotationOfCalib.push_back(atan2(_distOfPoints[3],_distOfPoints[2])*180/CV_PI);
+			}
+			else 
+			{
+				_rotationCurrentFrame[0]= atan2(_distOfPoints[1],_distOfPoints[0])*180/CV_PI-_rotationOfCalib[0];
+				_rotationCurrentFrame[1]= atan2(_distOfPoints[3],_distOfPoints[2])*180/CV_PI-_rotationOfCalib[1];
+			}
 		}
-		//now use distanceBetweenPoints and focal length to calculate basic distance
 	}
 	// now I have a basic value for first distance calculation.
 	// we need also the rotation of the points in straight view to cam.
@@ -54,9 +53,9 @@ void DetectionCircles::detect(Mat* frame, Rect* face)
 	}
 }
 
-int DetectionCircles::getRotationAngle(int x)
+double DetectionCircles::getRotationAngle(int x)
 {
-	return (int)_rotationCurrentFrame[x];
+	return _rotationCurrentFrame[x];
 }
 
 void DetectionCircles::calculateDistanceBetweenPoints()
@@ -71,7 +70,7 @@ void DetectionCircles::calculateDistanceBetweenPoints()
 			for(int j=i+1;j<circles.size();j++)
 			{
 				// distance between points
-				_distancesBetweenAllCircles.push_back(distanceOfPoints(&circles[i],&circles[j]));
+				_distancesBetweenAllCircles.push_back(distanceOfPoints(circles[i],circles[j]));
 			}
 		}
 		std::sort(_distancesBetweenAllCircles.begin(),_distancesBetweenAllCircles.end());
@@ -144,27 +143,26 @@ return change;
 void DetectionCircles::calcDistances()
 {
 	_distanceOfPoints_tmp.clear();
-	_distanceOfPoints_tmp[0].push_back(Point(0,0));
-	_distanceOfPoints_tmp[1].push_back(Point(0,0));
 	calcDistances_help(0,1,2,0,0);calcDistances_help(3,4,5,0,0);calcDistances_help(6,7,8,0,0);calcDistances_help(0,3,6,1,0);calcDistances_help(1,4,7,1,0);calcDistances_help(2,5,8,1,0);
+	
 	for(int i=0;i<2;i++)
 	{
-		for (int j=1;j<_distanceOfPoints_tmp[i].size()-1;j++)
+		for (int j=0;j<_distanceOfPoints_tmp[i].size();j++)
 		{
-			_distanceOfPoints_tmp[i][0]+=_distanceOfPoints_tmp[i][j];
+			_distOfPoints[2*i]+=_distanceOfPoints_tmp[i][j].x;
+			_distOfPoints[2*i+1]+=_distanceOfPoints_tmp[i][j].y;
 		}
-		if (_distanceOfPoints_tmp[i].size() >1)
+		if (_distanceOfPoints_tmp[i].size() >0)
 		{
-			_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x/(_distanceOfPoints_tmp[i].size()-1);
-			_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y/(_distanceOfPoints_tmp[i].size()-1);
+			_distOfPoints[2*i]/=_distanceOfPoints_tmp[i].size()-1;
+			_distOfPoints[2*i+1]/=_distanceOfPoints_tmp[i].size()-1;
 		}
-		else if (_distanceOfPoints_tmp[i].size() ==1)
+		else if (_distanceOfPoints_tmp[i].size() ==0)
 		{
-			_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x;
-			_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y;
+			_distOfPoints[2*i]==_distanceOfPoints_tmp[i][1].x;
+			_distOfPoints[2*i+1]==_distanceOfPoints_tmp[i][1].y;
 		}
 	}
-	
 }
 
 void DetectionCircles::calcDistances_help(int a,int b,int c,int direction, int inMatrix)
@@ -191,26 +189,26 @@ bool DetectionCircles::setNeighbors(int cir,int inMatrix)
 		// check if all neighbors have values
 		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,0)] == nullptr) 
 		{
-			circleMatrix[inMatrix][getNeighborInMatrix(cir,0)]=new Point(circleMatrix[inMatrix][cir]->x-_distanceOfPoints[0].x,
-																		circleMatrix[inMatrix][cir]->y-_distanceOfPoints[0].y);
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,0)]=new Point(circleMatrix[inMatrix][cir]->x-_distOfPoints[0],
+																		circleMatrix[inMatrix][cir]->y-_distOfPoints[1]);
 			change=true;
 		}
 		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,1)] == nullptr) 
 		{
-			circleMatrix[inMatrix][getNeighborInMatrix(cir,1)]=new Point(circleMatrix[inMatrix][cir]->x+_distanceOfPoints[0].x,
-																		circleMatrix[inMatrix][cir]->y+_distanceOfPoints[0].y);
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,1)]=new Point(circleMatrix[inMatrix][cir]->x+_distOfPoints[0],
+																		circleMatrix[inMatrix][cir]->y+_distOfPoints[1]);
 			change=true;
 		}
 		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,2)] == nullptr) 
 		{
-			circleMatrix[inMatrix][getNeighborInMatrix(cir,2)]=new Point(circleMatrix[inMatrix][cir]->x-_distanceOfPoints[1].x,
-																		circleMatrix[inMatrix][cir]->y-_distanceOfPoints[1].y);
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,2)]=new Point(circleMatrix[inMatrix][cir]->x-_distOfPoints[2],
+																		circleMatrix[inMatrix][cir]->y-_distOfPoints[3]);
 			change=true;
 		}
 		if (circleMatrix[inMatrix][getNeighborInMatrix(cir,3)] == nullptr) 
 		{
-			circleMatrix[inMatrix][getNeighborInMatrix(cir,3)]=new Point(circleMatrix[inMatrix][cir]->x+_distanceOfPoints[1].x,
-																		circleMatrix[inMatrix][cir]->y+_distanceOfPoints[1].y);
+			circleMatrix[inMatrix][getNeighborInMatrix(cir,3)]=new Point(circleMatrix[inMatrix][cir]->x+_distOfPoints[2],
+																		circleMatrix[inMatrix][cir]->y+_distOfPoints[3]);
 			change=true;
 		}
 	}
@@ -234,18 +232,18 @@ bool DetectionCircles::fillCircleMatrix_matrixPossible()
 	int xMid=xMin+(xMax-xMin)/2;
 	int yMid=yMin+(yMax-yMin)/2;
 	// if only distanceBetweenPoints exists
-		// distance must be nearly the same like in calibration process
-	if (_distanceOfPoints[0]==Point(0,0) || _distanceOfPoints[1]==Point(0,0))	
+	// distance must be nearly the same like in calibration process
+	if ((_distOfPoints[0]==0 && _distOfPoints[1]==0) || (_distOfPoints[3]==0 && _distOfPoints[4]==0))	
 	{
-	if (!nearlyEqual(distanceOfPoints(&Point(xMid,yMin),&Point(xMin,yMin)),_distanceBetweenPoints,40) || !nearlyEqual(distanceOfPoints(&Point(xMin,yMid),&Point(xMin,yMin)),_distanceBetweenPoints,40) ) {return false;}
+	if (!nearlyEqual(distanceOfPoints(Point(xMid,yMin),Point(xMin,yMin)),_distanceBetweenPoints,40) || !nearlyEqual(distanceOfPoints(Point(xMin,yMid),Point(xMin,yMin)),_distanceBetweenPoints,40) ) {return false;}
 	}
 	else
 	{
 		// distance must be nearly the one from previous
-		if ((!nearlyEqual(distanceOfPoints(&Point(xMid,yMin),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[0]),40) || !nearlyEqual(distanceOfPoints(&Point(xMin,yMid),&Point(xMin,yMin)),distanceOfPoints(&Point(0,0),&_distanceOfPoints[1]),40))) 
+		if ((!nearlyEqual(distanceOfPoints(Point(xMid,yMin),Point(xMin,yMin)),distanceOfPoints(Point(0,0),Point(_distOfPoints[0],_distOfPoints[1])),40) || !nearlyEqual(distanceOfPoints(Point(xMin,yMid),Point(xMin,yMin)),distanceOfPoints(Point(0,0),Point(_distOfPoints[2],_distOfPoints[3])),40))) 
 		{
 			_noDetectionCount++;
-			if (_noDetectionCount==6) {_noDetectionCount=0;_distanceOfPoints[0]=Point(0,0);_distanceOfPoints[1]=Point(0,0);}
+			if (_noDetectionCount==10) {_noDetectionCount=0;_distOfPoints[0]=0;_distOfPoints[1]=0;_distOfPoints[2]=0;_distOfPoints[3]=0;}
 			return false;
 		}
 	}
@@ -324,6 +322,11 @@ bool DetectionCircles::fillCircleMatrix_matrixFilled()
 	{
 		if (circleMatrix[0][i]==nullptr) {return false;}
 	}
+	for (int i=0;i<9;i++)
+	{
+		circleMatrixOld[i]=*circleMatrix[0][i];
+	}
+
 	return true;
 }
 
@@ -334,11 +337,19 @@ bool DetectionCircles::fillCircleMatrix()
 	// filling recognized circles into the matrix and check if enough for calculation
 	if (fillCircleMatrix_matrixPossible())
 	{
+		if (circleMatrix[0][4] != nullptr && nearlyEqual(circleMatrix[0][4]->x,circleMatrixOld[4].x,5) && nearlyEqual(circleMatrix[0][4]->y,circleMatrixOld[4].y,5)) 
+		{
+			for (int i=0;i<9;i++)
+			{
+					circleMatrix[0][i]=&circleMatrixOld[i];
+			}
+		}
 		if (fillCircleMatrix_matrixFilled()) 
 		{
 			calcDistances();
 			return true;
 		}
+
 		// 1st result by adding third with the help of circleMatrix[1] and [2], result if successful in [0]
 		if (fillCircleMatrix_result1()) 
 		{
@@ -376,7 +387,7 @@ bool DetectionCircles::detectCircles()
 {
 	cvtColor( (*_frame)(circleArea), _working_frame, CV_BGR2GRAY );
 	equalizeHist(_working_frame,_working_frame);
-	threshold(_working_frame, _working_frame,  160, 255, CV_THRESH_BINARY );
+	//threshold(_working_frame, _working_frame,  120, 255, CV_THRESH_BINARY );
 	Canny(_working_frame, _working_frame, 200, 255, 3);
 	//imshow("web cam device 0",_working_frame);
 	vector<vector<Point>> contours;
@@ -438,7 +449,16 @@ bool DetectionCircles::nearlyEqual(int x,int y,int z)
 	else {return false;}
 }
 
-double DetectionCircles::distanceOfPoints(Point* i,Point* j)
+double DetectionCircles::distanceOfPoints(Point& i,Point& j)
 {
-	return sqrt(pow((i->x-j->x),2)+pow((i->y-j->y),2));
+	return sqrt(pow((i.x-j.x),2)+pow((i.y-j.y),2));
+}
+
+double DetectionCircles::getDistanceBetweenPoints()
+{
+	if (_distOfPoints[0]==0 && _distOfPoints[1]==0)
+	{
+		return _distanceBetweenPoints;
+	}
+	else {return sqrt(pow(_distOfPoints[0],2)+pow(_distOfPoints[1],2));}
 }

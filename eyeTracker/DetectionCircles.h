@@ -32,7 +32,8 @@ public:
 	//getter
 	Rect* getCircleArea();
 	Point getCoordsOfcircleMatrix(int);
-	int getRotationAngle(int);
+	double getRotationAngle(int);
+	double getDistanceBetweenPoints();
 	// helper
 	bool nearlyEqual(int,int,int);
 	int getNeighborInMatrix(int,int);
@@ -47,13 +48,13 @@ private:
 	double _distanceBetweenPoints;
 	// distance between points after filling the matrix
 	map<int,vector<Point>> _distanceOfPoints_tmp;
-	vector<Point> _distanceOfPoints;
-
+	map<int,double> _distOfPoints;
 
 	vector<Point> circles;
-	double distanceOfPoints(Point*,Point*);
+	double distanceOfPoints(Point&,Point&);
 	// coords of the circleMatrix
 	map<int,map<int,Point*> > circleMatrix;
+	map<int,Point> circleMatrixOld;
 	Rect circleArea;
 
 
