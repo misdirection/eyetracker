@@ -144,7 +144,7 @@ void DetectionCircles::calcDistances()
 {
 	_distanceOfPoints_tmp.clear();
 	calcDistances_help(0,1,2,0,0);calcDistances_help(3,4,5,0,0);calcDistances_help(6,7,8,0,0);calcDistances_help(0,3,6,1,0);calcDistances_help(1,4,7,1,0);calcDistances_help(2,5,8,1,0);
-	
+	_distOfPoints[0]=0;_distOfPoints[1]=0;_distOfPoints[2]=0;_distOfPoints[3]=0;
 	for(int i=0;i<2;i++)
 	{
 		for (int j=0;j<_distanceOfPoints_tmp[i].size();j++)
@@ -152,16 +152,8 @@ void DetectionCircles::calcDistances()
 			_distOfPoints[2*i]+=_distanceOfPoints_tmp[i][j].x;
 			_distOfPoints[2*i+1]+=_distanceOfPoints_tmp[i][j].y;
 		}
-		if (_distanceOfPoints_tmp[i].size() >0)
-		{
-			_distOfPoints[2*i]/=_distanceOfPoints_tmp[i].size()-1;
-			_distOfPoints[2*i+1]/=_distanceOfPoints_tmp[i].size()-1;
-		}
-		else if (_distanceOfPoints_tmp[i].size() ==0)
-		{
-			_distOfPoints[2*i]==_distanceOfPoints_tmp[i][1].x;
-			_distOfPoints[2*i+1]==_distanceOfPoints_tmp[i][1].y;
-		}
+		_distOfPoints[2*i]/=_distanceOfPoints_tmp[i].size();
+		_distOfPoints[2*i+1]/=_distanceOfPoints_tmp[i].size();
 	}
 }
 
@@ -247,23 +239,23 @@ bool DetectionCircles::fillCircleMatrix_matrixPossible()
 			return false;
 		}
 	}
-	bool row0=false,row1=false,row2=false,col0=false,col1=false,col2=false;
+	bool row0=false,row1=false,row2=false,col0=false,col1=false,col2=false;int count=0;
 	// fill matrix with detected circles
 	for (int i=0;i<circles.size();i++)
 	{
-		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][0]=&circles[i];row0=true;col0=true;}
-		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][1]=&circles[i];row0=true;col1=true;}
-		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][2]=&circles[i];row0=true;col2=true;}
-		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][3]=&circles[i];row1=true;col0=true;}
-		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][4]=&circles[i];row1=true;col1=true;}
-		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][5]=&circles[i];row1=true;col2=true;}
-		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][6]=&circles[i];row2=true;col0=true;}
-		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][7]=&circles[i];row2=true;col1=true;}
-		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][8]=&circles[i];row2=true;col2=true;}
+		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][0]=&circles[i];row0=true;col0=true;count++;}
+		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][1]=&circles[i];row0=true;col1=true;count++;}
+		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMin,5)) {circleMatrix[0][2]=&circles[i];row0=true;col2=true;count++;}
+		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][3]=&circles[i];row1=true;col0=true;count++;}
+		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][4]=&circles[i];row1=true;col1=true;count++;}
+		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMid,5)) {circleMatrix[0][5]=&circles[i];row1=true;col2=true;count++;}
+		if (nearlyEqual(circles[i].x,xMin,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][6]=&circles[i];row2=true;col0=true;count++;}
+		if (nearlyEqual(circles[i].x,xMid,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][7]=&circles[i];row2=true;col1=true;count++;}
+		if (nearlyEqual(circles[i].x,xMax,5) && nearlyEqual(circles[i].y,yMax,5)) {circleMatrix[0][8]=&circles[i];row2=true;col2=true;count++;}
 	}
 	// if 2, add third
 	// 3/2 or 2/3 rows/cols must have at least one value, check if we can go on
-	if (row0 && row2 && col0 && col1 && col2 || row0 && row1 && row2 && col0 && col2) {return true;}
+	if (count > 3  && ((row0 && row2 && col0 && col1 && col2) || (row0 && row1 && row2 && col0 && col2))) {return true;}
 	else {return false;}
 }
 
@@ -306,12 +298,43 @@ bool DetectionCircles::fillCircleMatrix_result2()
 	{
 	circleMatrix[i]=circleMatrix[0];
 	}
-		for (int cir=0;cir<circleMatrix[1].size();cir++)
-		{
-			setNeighbors(cir,1);
-		}
-	
-
+	// create order of going through 
+	map<int,map<int,int>> order;
+	int order1[18] = {0,1,2,3,4,5,6,7,8,0,1,2,3,4,5,6,7,8},order2[18] = {0,3,6,1,4,7,2,5,8,0,3,6,1,4,7,2,5,8};
+	// first horizontal 0-9, starting with first non-nullptr
+	// eg: circle 0 & 1 are nullptr:  2,3,4,5,6,7,8,0,1
+	int circleStart=0;
+	while (circleMatrix[1][circleStart]==nullptr) {circleStart++;}
+	for (int cir=0;cir<circleMatrix[1].size();cir++,circleStart++)
+	{
+		setNeighbors(order1[circleStart],1);
+	}
+	// opposite direction 9-0
+	circleStart=0;
+	while (circleMatrix[2][circleMatrix[2].size()-1-circleStart]==nullptr) {circleStart++;}
+	for (int cir=circleMatrix[2].size()-1;cir>=0;cir--,circleStart++)
+	{
+		setNeighbors(order1[17-circleStart],2);
+	}
+	circleStart=0;
+	while (circleMatrix[3][order2[circleStart]]==nullptr) {circleStart++;}
+	for (int cir=0;cir<circleMatrix[3].size();cir++,circleStart++)
+	{
+		setNeighbors(order2[circleStart],3);
+	}
+	// opposite direction 9-0
+	circleStart=0;
+	while (circleMatrix[4][circleMatrix[4].size()-1-order2[circleStart]]==nullptr) {circleStart++;}
+	for (int cir=circleMatrix[4].size()-1;cir>=0;cir--,circleStart++)
+	{
+		setNeighbors(order1[17-circleStart],4);
+	}
+	for (int i=0;i<circleMatrix[0].size();i++)
+	{
+		circleMatrix[0][i]=new Point(0,0);
+		circleMatrix[0][i]->x=(circleMatrix[1][i]->x+circleMatrix[2][i]->x+circleMatrix[3][i]->x+circleMatrix[4][i]->x)/4;
+		circleMatrix[0][i]->y=(circleMatrix[1][i]->y+circleMatrix[2][i]->y+circleMatrix[3][i]->y+circleMatrix[4][i]->y)/4;
+	}
 
 	return true;
 }
@@ -347,11 +370,12 @@ bool DetectionCircles::fillCircleMatrix()
 		if (fillCircleMatrix_matrixFilled()) 
 		{
 			calcDistances();
-			return true;
+			if (nearlyEqual(_distOfPoints[0],_distOfPoints[3],50)) {return true;}
+			else {return false;}
 		}
 
 		// 1st result by adding third with the help of circleMatrix[1] and [2], result if successful in [0]
-		if (fillCircleMatrix_result1()) 
+		if (fillCircleMatrix_result1() && nearlyEqual(_distOfPoints[0],_distOfPoints[3],40)) 
 		{
 			// calculate distances needed for result2 and if return
 			calcDistances();
@@ -405,7 +429,7 @@ for (int i = 0; i < contours.size(); i++)
         double area = contourArea(contours[i]);
         cv::Rect r = boundingRect(contours[i]);
         int radius = r.width / 2;
-        if (abs(1 - ((double)r.width / r.height)) <= 0.3 & abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.3)
+        if (abs(1 - (((double)r.width / r.height)) <= 0.3) & (abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.3))
         {
 			// check if circle already in vector
 			int x = r.x+r.width/2;

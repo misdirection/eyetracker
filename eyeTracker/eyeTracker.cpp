@@ -32,8 +32,6 @@ bool setup()
 		{
 			//test cout for the path and name of the device (accessable everywhere due to extern)
 			// use this to check if there is a calib file already
-			cout << captureDeviceInfo->getName(number) << endl;			
-			cout << captureDeviceInfo->getPath(number) << endl;			
 			devices[number]=nullptr;
 			number++;
 			captureDevice->release();
@@ -80,7 +78,7 @@ int main( int argc, const char** argv )
 		while(number<0 || number >=devices.size() )
 		{
 			while(!_kbhit());
-			string temp; temp= getch(); number = atoi(temp.c_str());
+			string temp; temp= _getch(); number = atoi(temp.c_str());
 			if (number == 0 && !(temp=="0")) {number=-1;}
 		}
 		// activate the selected device
