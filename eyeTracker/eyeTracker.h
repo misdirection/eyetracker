@@ -14,11 +14,17 @@ public:
 	~Externals(void);
 	//CascadeClassifier getFaceCascade(),getEyeCascade();
 	bool loadFaceCascade(), loadEyeCascade();
+	FileStorage getfs();
+	FileStorage getCalibFile();
+	bool loadCalibFile();
+	void setFocalLengths(double);
+	vector<double>getFocalLengths();
 	FileNode getFaceCascade(),getEyeCascade();
-	
+
 private:
-	FileStorage storageFace, storageEye;
 	CascadeClassifier face_cascade,eye_cascade;
+	FileStorage fs, storageFace, storageEye;
+	vector<double> focalLengths;
 };
 
 class DeviceInformation
@@ -32,6 +38,7 @@ public:
 
 	string getName(int i);
 	string getPath(int i);
+
 
 private:
 	vector<string> _name;
