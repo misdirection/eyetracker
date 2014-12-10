@@ -1,5 +1,7 @@
 #include "DetectionCircles.h"
+#include "eyeTracker.h"
 #include <math.h>
+
 
 DetectionCircles::DetectionCircles(void) :_distanceBetweenPoints(0),_rotationOfCalib(0),_noDetectionCount(0)
 {
@@ -142,6 +144,9 @@ return change;
 	// calculate existing distances
 void DetectionCircles::calcDistances()
 {
+	//_frame=frame;
+	//double widthFactor=(frame.cols)/800.00;
+	//double heightFactor=_frame.rows/600.00;
 	calcDistances_help(0,1,2,0,0);calcDistances_help(3,4,5,0,0);calcDistances_help(6,7,8,0,0);calcDistances_help(0,3,6,1,0);calcDistances_help(1,4,7,1,0);calcDistances_help(2,5,8,1,0);
 	for(int i=0;i<2;i++)
 	{
@@ -151,6 +156,9 @@ void DetectionCircles::calcDistances()
 		}
 		_distanceOfPoints[i].x=_distanceOfPoints_tmp[i][0].x/(_distanceOfPoints_tmp[i].size()-1);
 		_distanceOfPoints[i].y=_distanceOfPoints_tmp[i][0].y/(_distanceOfPoints_tmp[i].size()-1);
+		double dist= (sqrt(pow((_distanceOfPoints_tmp[i][1].x - _distanceOfPoints_tmp[i][0].x),2)+pow((_distanceOfPoints_tmp[i][1].y - _distanceOfPoints_tmp[i][0].y),2)))*((files->getFocalLengths()[0])/3.779527559);
+		cout << "distance" << dist/100 << endl;
+		
 	}
 	_distanceOfPoints_tmp.clear();
 }

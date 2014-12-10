@@ -86,3 +86,6 @@ static bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat
 bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat& distCoeffs,vector<vector<Point2f> > imagePoints,int );
 //main run function
 
+int startCalibration(int m);
+
+void dist_calc(double focal);
