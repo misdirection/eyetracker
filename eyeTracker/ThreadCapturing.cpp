@@ -45,7 +45,7 @@ void ThreadCapturing::Run()
     {
         Mat frame;
         _captureDevice >> frame; // get a new frame from camera
-        flip(frame,frame,1);
+		flip(frame,frame,1);
         det.detect(&frame);
         detCir.detect(&frame,det.getFaceRect());
         // confirm pupils by checking distance between circleGridCenter and pupils, must be nearly the same as before

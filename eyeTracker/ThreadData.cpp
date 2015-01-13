@@ -65,6 +65,7 @@ void ThreadData::Run()
 			}
 			if (calibprocess==9)
 			{
+				int x1=0;int count=0;int y1=0;
 				// calculate standard values for each thread ...
 				for (int i=0;i<receivedThreads.size();i++)
 				{
@@ -84,6 +85,20 @@ void ThreadData::Run()
 							calib[receivedThreads[i]][j][k].x=(int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
 							calib[receivedThreads[i]][j][k].y=(int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
 						}
+						x1+=calib[receivedThreads[i]][j][2].x-calib[receivedThreads[i]][j][1].x;
+						x1+=calib[receivedThreads[i]][j][1].x-calib[receivedThreads[i]][j][0].x;
+						x1+=calib[receivedThreads[i]][j][5].x-calib[receivedThreads[i]][j][4].x;
+						x1+=calib[receivedThreads[i]][j][4].x-calib[receivedThreads[i]][j][3].x;
+						x1+=calib[receivedThreads[i]][j][8].x-calib[receivedThreads[i]][j][7].x;
+						x1+=calib[receivedThreads[i]][j][7].x-calib[receivedThreads[i]][j][6].x;
+						calib2[receivedThreads[i]][j].x=x1/6;
+						y1+=calib[receivedThreads[i]][j][6].y-calib[receivedThreads[i]][j][3].y;
+						y1+=calib[receivedThreads[i]][j][3].y-calib[receivedThreads[i]][j][0].y;
+						y1+=calib[receivedThreads[i]][j][7].y-calib[receivedThreads[i]][j][4].y;
+						y1+=calib[receivedThreads[i]][j][4].y-calib[receivedThreads[i]][j][1].y;
+						y1+=calib[receivedThreads[i]][j][8].y-calib[receivedThreads[i]][j][5].y;
+						y1+=calib[receivedThreads[i]][j][5].y-calib[receivedThreads[i]][j][2].y;
+						calib2[receivedThreads[i]][j].y=y1/6;						
 					}
 				}
 				calibprocess++;
@@ -91,24 +106,23 @@ void ThreadData::Run()
 			// finally check datas that come with calibrationvalues
 			if (calibprocess==10)
 			{
-				int x,y;
+			int x=0,y=0;
 				for (int m=0;m<2;m++)
 				{
 					if (data->pupilPos[m]!=Point(0,0))
 					{
 					int point=data->pupilPos[m].x-calib[data->id][m][0].x;
-					int difBetweenFirstNLast=calib[data->id][m][8].x-calib[data->id][m][0].x;
+					int difBetweenFirstNLast=calib2[data->id][m].x;
 					float percentage = (((float)point/(float)difBetweenFirstNLast));
-					x = (int)(dim1*percentage);
+					x = ((int)(dim1*percentage)+x)/2;
 					point=data->pupilPos[m].y-calib[data->id][m][0].y;
-					difBetweenFirstNLast=calib[data->id][m][8].y-calib[data->id][m][0].y;
+					difBetweenFirstNLast=calib2[data->id][m].y;
 					percentage = (((float)point/(float)difBetweenFirstNLast));
-					y = (int)(dim2*percentage);
-					if (x>=0 && y>=0)
-					{circle(base,Point(x,y),dim2/100,Scalar(0,0,0),CV_FILLED);}
+					y = ((int)(dim2*percentage)+y)/2;
 					}
 				}
-			cout << "test";
+			if (x>=0 && y>=0)
+			{circle(base,Point(x,y),dim2/100,Scalar(0,0,0),CV_FILLED);}
 			}
 			// get data package from other thread
 			//cout << data->x;
