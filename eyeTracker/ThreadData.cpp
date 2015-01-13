@@ -81,8 +81,8 @@ void ThreadData::Run()
 								x+=calib_tmp[receivedThreads[i]][j][k][l].x;
 								y+=calib_tmp[receivedThreads[i]][j][k][l].y;
 							}
-							calib[receivedThreads[i]][j][k].x=(int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()-1));
-							calib[receivedThreads[i]][j][k].y=(int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()-1));
+							calib[receivedThreads[i]][j][k].x=(int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
+							calib[receivedThreads[i]][j][k].y=(int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
 						}
 					}
 				}
@@ -92,17 +92,21 @@ void ThreadData::Run()
 			if (calibprocess==10)
 			{
 				int x,y;
-				for (int j=0;j<2;j++)
+				for (int m=0;m<2;m++)
 				{
-					int point=data->pupilPos[j].x-calib[receivedThreads[data->id]][j][0].x;
-					int difBetweenFirstNLast=calib[receivedThreads[data->id]][j][9].x-calib[receivedThreads[data->id]][j][0].x;
-					float percentage = (float)point/(float)difBetweenFirstNLast;
+					if (data->pupilPos[m]!=Point(0,0))
+					{
+					int point=data->pupilPos[m].x-calib[data->id][m][0].x;
+					int difBetweenFirstNLast=calib[data->id][m][8].x-calib[data->id][m][0].x;
+					float percentage = (((float)point/(float)difBetweenFirstNLast));
 					x = (int)(dim1*percentage);
-					point=data->pupilPos[j].y-calib[receivedThreads[data->id]][j][0].y;
-					difBetweenFirstNLast=calib[receivedThreads[data->id]][j][9].y-calib[receivedThreads[data->id]][j][0].y;
-					percentage = (float)point/(float)difBetweenFirstNLast;
+					point=data->pupilPos[m].y-calib[data->id][m][0].y;
+					difBetweenFirstNLast=calib[data->id][m][8].y-calib[data->id][m][0].y;
+					percentage = (((float)point/(float)difBetweenFirstNLast));
 					y = (int)(dim2*percentage);
-					circle(base,Point(x,y),dim2/100,Scalar(0,0,0),CV_FILLED);
+					if (x>=0 && y>=0)
+					{circle(base,Point(x,y),dim2/100,Scalar(0,0,0),CV_FILLED);}
+					}
 				}
 			cout << "test";
 			}

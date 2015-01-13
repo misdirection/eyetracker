@@ -68,6 +68,7 @@ void switchDevices(int number)
 
 int main( int argc, const char** argv ) 
 { 
+
 	// get count of recognized cameras
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
 /*

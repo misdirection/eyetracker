@@ -68,8 +68,16 @@ void ThreadCapturing::Run()
         line(frame,detCir.getCoordsOfcircleMatrix(1),detCir.getCoordsOfcircleMatrix(7), Scalar( 0, 255, 0 ), 1, 8, 0 );
         data->firstpackage = false;
         data->id=GetCurrentThreadId();
-        data->pupilPos[0] = *det.getPupilPoint(0);
-        data->pupilPos[1] = *det.getPupilPoint(1);
+		if(detCir.getCoordsOfcircleMatrix(5)!=Point(0,0))
+		{data->pupilPos[0] = *det.getPupilPoint(0)-detCir.getCoordsOfcircleMatrix(5)+Point(200,200);
+		data->pupilPos[1] = *det.getPupilPoint(1)-detCir.getCoordsOfcircleMatrix(5)+Point(200,200);}
+		else 
+		{
+			data->pupilPos[0]=Point(0,0);data->pupilPos[1]=Point(0,0);
+		}
+		if (data->pupilPos[0].x<=0 || data->pupilPos[0].y<=0 || data->pupilPos[1].x<=0 || data->pupilPos[1].y<=0)
+		{data->pupilPos[0]=Point(0,0);data->pupilPos[1]=Point(0,0);}
+
         ThreadCom_send(_dataThreadId,(WPARAM)data);
 
         imshow(_windowName, frame); //displays an image in the specified window
