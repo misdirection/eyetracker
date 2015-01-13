@@ -54,13 +54,12 @@ void DetectionBasic::detectPupils()
 				pupil[0]=Point(0,0);
 				pupil[1]=Point(0,0);
 				_distanceOfPupilsCounter++;
-				if (_distanceOfPupilsCounter==5) {_distanceOfPupils=0;}
+				if (_distanceOfPupilsCounter>=5) {_distanceOfPupils=0;}
 			}
 		}
 	}
 }	
-		
-		
+			
 void DetectionBasic::detectEye()
 {
 	// for each eye area

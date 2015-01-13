@@ -46,6 +46,7 @@ void ThreadCapturing::Run()
 		flip(frame,frame,1);
 		det.detect(&frame);
 		detCir.detect(&frame,det.getFaceRect());
+		// confirm pupils by checking distance between circleGridCenter and pupils, must be nearly the same as before
 		//stringstream text; text << framesPerSeconds.getFPS();
 		stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
 		putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
@@ -59,9 +60,10 @@ void ThreadCapturing::Run()
 		{
 			circle(frame,detCir.getCoordsOfcircleMatrix(x),5, Scalar( 255, 255, 0 ), 2, 8, 0 );
 		}
+
 		line(frame,detCir.getCoordsOfcircleMatrix(3),detCir.getCoordsOfcircleMatrix(5), Scalar( 0, 255, 0 ), 1, 8, 0 );
 		line(frame,detCir.getCoordsOfcircleMatrix(1),detCir.getCoordsOfcircleMatrix(7), Scalar( 0, 255, 0 ), 1, 8, 0 );
-		imshow(_windowName, frame); //displays an image in the specified window
+		//imshow(_windowName, frame); //displays an image in the specified window
 		//cout << "fps:" << framesPerSeconds.getFPS() << endl;
 		//if(cvWaitKey(1) >= 0);
 	}

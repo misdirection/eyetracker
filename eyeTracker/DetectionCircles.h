@@ -56,7 +56,7 @@ private:
 	map<int,map<int,Point*> > circleMatrix;
 	map<int,Point> circleMatrixOld;
 	Rect circleArea;
-
+	bool circleGridSuccessful;
 
 	// helpers
 	vector<double> _distanceBetweenPointsTopResults_temp;

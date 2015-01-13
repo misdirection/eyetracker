@@ -5,8 +5,6 @@ DetectionCircles::DetectionCircles(void) :_distanceBetweenPoints(0),_rotationOfC
 {
 	_rotationCurrentFrame.push_back(0);
 	_rotationCurrentFrame.push_back(0);
-	//_rotationOfCalib.push_back(0);
-	//_rotationOfCalib.push_back(0);
 }
 
 
@@ -225,7 +223,7 @@ bool DetectionCircles::fillCircleMatrix_matrixPossible()
 	int yMid=yMin+(yMax-yMin)/2;
 	// if only distanceBetweenPoints exists
 	// distance must be nearly the same like in calibration process
-	if ((_distOfPoints[0]==0 && _distOfPoints[1]==0) || (_distOfPoints[3]==0 && _distOfPoints[4]==0))	
+	if ((_distOfPoints[0]==0 && _distOfPoints[1]==0) || (_distOfPoints[2]==0 && _distOfPoints[3]==0))	
 	{
 	if (!nearlyEqual(distanceOfPoints(Point(xMid,yMin),Point(xMin,yMin)),_distanceBetweenPoints,40) || !nearlyEqual(distanceOfPoints(Point(xMin,yMid),Point(xMin,yMin)),_distanceBetweenPoints,40) ) {return false;}
 	}
@@ -356,11 +354,25 @@ bool DetectionCircles::fillCircleMatrix_matrixFilled()
 
 bool DetectionCircles::fillCircleMatrix()
 {
+	if (circleGridSuccessful)
+	{
+			circleMatrix[0][0]=&circles[6];
+			circleMatrix[0][1]=&circles[3];
+			circleMatrix[0][2]=&circles[0];
+			circleMatrix[0][3]=&circles[7];
+			circleMatrix[0][4]=&circles[4];
+			circleMatrix[0][5]=&circles[1];
+			circleMatrix[0][6]=&circles[8];
+			circleMatrix[0][7]=&circles[5];
+			circleMatrix[0][8]=&circles[2];
+			calcDistances();
+			return true;
+	}
 	// if 9 circles are detected, the matrix is already complete. Update the distances and return
 	// filling recognized circles into the matrix and check if enough for calculation
 	if (fillCircleMatrix_matrixPossible())
 	{
-		if (circleMatrix[0][4] != nullptr && nearlyEqual(circleMatrix[0][4]->x,circleMatrixOld[4].x,5) && nearlyEqual(circleMatrix[0][4]->y,circleMatrixOld[4].y,5)) 
+		if (circleMatrix[0][4] != nullptr && nearlyEqual(circleMatrix[0][4]->x,circleMatrixOld[4].x,3) && nearlyEqual(circleMatrix[0][4]->y,circleMatrixOld[4].y,3)) 
 		{
 			for (int i=0;i<9;i++)
 			{
@@ -402,7 +414,7 @@ bool DetectionCircles::calculateCircleArea(Rect* face)
 	circleArea.width=(int)(0.5*(double)face->width);
 	circleArea.height=(int)(0.5*(double)face->height);
 	return true;
-	}
+}	
 	else {return false;}
 }
 
@@ -411,6 +423,15 @@ bool DetectionCircles::detectCircles()
 {
 	cvtColor( (*_frame)(circleArea), _working_frame, CV_BGR2GRAY );
 	equalizeHist(_working_frame,_working_frame);
+	Mat test;
+	// circleGrid needs black circles on white background -> invert
+	bitwise_not(_working_frame,test);
+	circleGridSuccessful=findCirclesGrid(test,Size(3,3), circles, CALIB_CB_SYMMETRIC_GRID + CALIB_CB_CLUSTERING);
+	// use openCV detection of circle grid
+	if (circleGridSuccessful==true) 
+	{
+		//return true;
+	}
 	//threshold(_working_frame, _working_frame,  120, 255, CV_THRESH_BINARY );
 	Canny(_working_frame, _working_frame, 200, 255, 3);
 	//imshow("web cam device 0",_working_frame);
@@ -480,6 +501,8 @@ double DetectionCircles::distanceOfPoints(Point& i,Point& j)
 
 double DetectionCircles::getDistanceBetweenPoints()
 {
+	// if point values are empty we use the _distance of 1st calibration process
+	// else we get the horizontal distance
 	if (_distOfPoints[0]==0 && _distOfPoints[1]==0)
 	{
 		return _distanceBetweenPoints;

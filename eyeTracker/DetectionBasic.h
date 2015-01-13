@@ -25,6 +25,7 @@ public:
 	void setRectangleZero(Rect);
 	bool isRectangleZero(Rect);
 	bool nearlyEqual(int,int,int);
+	// confirm pupils after getting circlesGrid
 private:
 	Mat* _frame; 
 	Mat _working_frame;
@@ -35,5 +36,6 @@ private:
 	double _distanceOfPupils;
 	int _distanceOfPupilsCounter;
 	CascadeClassifier _face_cascade,_eye_cascade;
+
 };
 
