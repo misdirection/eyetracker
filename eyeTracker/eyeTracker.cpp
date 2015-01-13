@@ -70,6 +70,7 @@ int main( int argc, const char** argv )
 { 
 	// get count of recognized cameras
 	if (!setup()) {cout << "execution will be stopped due to errors.\n";system("pause");return -1;}
+/*
 	if (devices.size() > 0) 
 	{
 		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
@@ -84,6 +85,7 @@ int main( int argc, const char** argv )
 		// activate the selected device
 		switchDevices(number);
 	}
+*/
 	char key;
 
 	while((key = cvWaitKey(0)) != 0x1b)
