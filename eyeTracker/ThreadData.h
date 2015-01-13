@@ -11,9 +11,9 @@ public:
 	void Run();
 
 private:
-
-	void checkIfNewThread(int id);
-
+	void drawCalibCircle(int);
+	int dim1,dim2;
+	Mat base;
 	int calibprocess;
 	vector<int> receivedThreads;
 	map<int,map<int,map<int,vector<Point>>>> calib_tmp;
