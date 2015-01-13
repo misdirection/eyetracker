@@ -69,24 +69,42 @@ void ThreadData::Run()
 				for (int i=0;i<receivedThreads.size();i++)
 				{
 					// ...and each eye...
-					for (int j=0;j<1;j++)
+					for (int j=0;j<2;j++)
 					{
 						// ...and each process
 						for (int k=0;k<9;k++)
 						{
 							int x=0,y=0;
-							// through all values in vector
+							// through all pupil in vector
 							for (int l=0;l<calib_tmp[receivedThreads[i]][j][k].size();l++)
 							{
 								x+=calib_tmp[receivedThreads[i]][j][k][l].x;
 								y+=calib_tmp[receivedThreads[i]][j][k][l].y;
 							}
-							x=(int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()-1));
-							y=(int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()-1));
+							calib[receivedThreads[i]][j][k].x=(int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()-1));
+							calib[receivedThreads[i]][j][k].y=(int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()-1));
 						}
 					}
 				}
-
+				calibprocess++;
+			}
+			// finally check datas that come with calibrationvalues
+			if (calibprocess==10)
+			{
+				int x,y;
+				for (int j=0;j<2;j++)
+				{
+					int point=data->pupilPos[j].x-calib[receivedThreads[data->id]][j][0].x;
+					int difBetweenFirstNLast=calib[receivedThreads[data->id]][j][9].x-calib[receivedThreads[data->id]][j][0].x;
+					float percentage = (float)point/(float)difBetweenFirstNLast;
+					x = (int)(dim1*percentage);
+					point=data->pupilPos[j].y-calib[receivedThreads[data->id]][j][0].y;
+					difBetweenFirstNLast=calib[receivedThreads[data->id]][j][9].y-calib[receivedThreads[data->id]][j][0].y;
+					percentage = (float)point/(float)difBetweenFirstNLast;
+					y = (int)(dim2*percentage);
+					circle(base,Point(x,y),dim2/100,Scalar(0,0,0),CV_FILLED);
+				}
+			cout << "test";
 			}
 			// get data package from other thread
 			//cout << data->x;

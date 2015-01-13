@@ -17,6 +17,7 @@ private:
 	int calibprocess;
 	vector<int> receivedThreads;
 	map<int,map<int,map<int,vector<Point>>>> calib_tmp;
+	map<int,map<int,map<int,Point>>> calib;
 	//map<int,int,int> calibValues; // first=threadID, second=x, third=y;
 };
 
