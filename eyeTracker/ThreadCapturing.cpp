@@ -30,11 +30,11 @@ ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice,in
 // main method of the ThreadCapturing which runs after the StartCapture
 void ThreadCapturing::Run()
 {
-	data->y=111;
-	data->x=GetCurrentThreadId();
+	//data->y=111;
+	//data->x=GetCurrentThreadId();
 	// test of  transfer to data thread only string here, but can be used with anything else
 	// send message of the thread to data thread
-	ThreadCom_send(_dataThreadId,(WPARAM)data);
+	//ThreadCom_send(_dataThreadId,(WPARAM)data);
 	fps framesPerSeconds;
 	DetectionBasic det;
 	DetectionCircles detCir;

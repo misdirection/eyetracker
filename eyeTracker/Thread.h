@@ -14,7 +14,7 @@ public:
 	void ThreadCom_reply(MSG);
 	DWORD getThreadId();
 	bool isRunning();
-	struct dataPackage{int x,y;} *data;
+	struct dataPackage{vector<Point> pupilPos;bool firstpackage;int id;} *data;
 
 protected:
 	bool _running;

@@ -11,5 +11,12 @@ public:
 	void Run();
 
 private:
+
+	void checkIfNewThread(int id);
+
+	int calibprocess;
+	vector<int> receivedThreads;
+	map<int,map<int,map<int,vector<Point>>>> calib_tmp;
+	//map<int,int,int> calibValues; // first=threadID, second=x, third=y;
 };
 
