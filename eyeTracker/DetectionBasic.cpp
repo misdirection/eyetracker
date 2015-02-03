@@ -69,9 +69,10 @@ void DetectionBasic::detectEye()
 	// detect eyes inside the calculated eye area field and fill array
 	//Mat _frame_eyeArea;
 	cvtColor( (*_frame)(eyes[i]), _working_frame, CV_BGR2GRAY );
-	equalizeHist( _working_frame, _working_frame );
 	GaussianBlur( _working_frame, _working_frame, cv::Size( 5, 5 ), 1);
 	_eye_cascade.detectMultiScale(_working_frame, _eyes, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(20, 20) );
+	if (i==1){imshow("test",_working_frame);}
+
 	// if an eye is detected inside this area, take this as new eye. otherwise we keep the calculated eye area
 	if (_eyes.size()>0)
 	{
@@ -85,13 +86,13 @@ void DetectionBasic::detectEye()
 
 void DetectionBasic::calculateEyeAreas()
 {
-	eyes[0].x=(int)((double)face.width*0.20)+face.x;       
-	eyes[1].x=(int)((double)face.width * 0.60) +face.x;
+	eyes[0].x=(int)((double)face.width*0.2)+face.x;       
+	eyes[1].x=(int)((double)face.width * 0.55) +face.x;
     for (int i=0;i<2;i++)
 	{
-	eyes[i].y = (int)((double)face.height * 0.2)+face.y;
-    eyes[i].height = (int)((double)face.height * 0.3);
-    eyes[i].width = (int)((double)face.width * 0.2);
+	eyes[i].y = (int)((double)face.height * 0.3)+face.y;
+    eyes[i].height = (int)((double)face.height * 0.2);
+    eyes[i].width = (int)((double)face.width * 0.25);
 	}
 }
 

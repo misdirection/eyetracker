@@ -38,13 +38,24 @@ Point DetectionPupil::calcHelper(int leftRight)
             }
         }
 	}
-	threshold(test,test,lightest,darkest,THRESH_BINARY);
-
+	int middle=(darkest-lightest)/2+lightest; // bei 100 bis 200 --> 150
+//		if (leftRight==0){imshow("test",test);}
+    for (int i = 0; i < test.cols; i++ ) {
+        for (int j = 0; j < test.rows; j++) {
+			if (test.at<uchar>(j, i) >= middle) {test.at<uchar>(j, i)=255;} 
+			else {
+				test.at<uchar>(j, i)=(int)((float)(test.at<uchar>(j, i)-lightest)/(float)(middle-lightest)*255);}
+        }
+	}
+	//equalizeHist( test,test);
+	threshold(test,test,0,255,THRESH_BINARY_INV);
 
 // ------------
 	//threshold(test, test,  0, 220, CV_THRESH_BINARY );
-	bitwise_not( test, test );
-	Canny(test, test, 0, 255, 3);
+	//bitwise_not( test, test );
+	Canny(test, test, 0, 240, 5);
+	
+	//if (leftRight==0){imshow("test2",test);}
 	vector<vector<Point>> contours;
 	vector<Point> approx,circles;
 
@@ -57,7 +68,7 @@ Point DetectionPupil::calcHelper(int leftRight)
 		// Approximate contour with accuracy proportional
 		// to the contour perimeter
 		cv::approxPolyDP(Mat(contours[i]),approx,arcLength(Mat(contours[i]), true) * 0.02,true);
-		if (approx.size() > 5)
+		if (approx.size() > 3)
 			{
 		        // Detect and label circles
 		        double area = contourArea(contours[i]);
@@ -107,13 +118,13 @@ Point DetectionPupil::calcHelper(int leftRight)
 
 Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	_eyeRect=eyeRect;
-	_working_frame=(*frame)(_eyeRect);
+	//_working_frame=(*frame)(_eyeRect);
 	//vector<Mat> bgr_planes;
 	 //split( _working_frame, bgr_planes );
 	 //if (leftRight==0){imshow("test",bgr_planes[2]);}
 	 //if (leftRight==0){imshow("test2", bgr_planes[1]);}
 	cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
-	equalizeHist( _working_frame, _working_frame );
+	//equalizeHist( _working_frame, _working_frame );
 	Point point1=calcHelper(leftRight);
 	point1.x+=_eyeRect.x;point1.y+=_eyeRect.y;
 	return point1;
@@ -183,8 +194,6 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	//morphologyEx(test2,test2,4,cv::getStructuringElement(cv::MORPH_RECT,cv::Size(3,3)));
 	//equalizeHist( test2,test2);
 	//adaptiveThreshold(test2,test2,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,11,3);
-	//if (leftRight==0){imshow("test",test);}
-	//if (leftRight==0){imshow("test2",test2);}
 	//adaptiveThreshold(test2,test2,255,ADAPTIVE_THRESH_GAUSSIAN_C,\
  //           THRESH_BINARY,11,5);
 	////bitwise_not(test2,test2);
