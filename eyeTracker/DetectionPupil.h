@@ -8,7 +8,7 @@ public:
 	DetectionPupil(void);
 	~DetectionPupil(void);
 
-	Point findEyeCenter(Mat*,Rect);
+	Point findEyeCenter(Mat*,Rect,int);
 	Point detect(Mat);
 	void scaleToFastSize(const Mat&,Mat&);
 	Mat floodKillEdges(Mat&);
@@ -20,7 +20,7 @@ public:
 	Mat matrixMagnitude(const Mat&, const Mat&);
 	double computeDynamicThreshold(const Mat&, double);
 
-	bool calcHelper();
+	Point calcHelper(int);
 	bool nearlyEqual(int,int,int);
 
 private:

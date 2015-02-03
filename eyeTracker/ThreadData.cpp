@@ -3,13 +3,13 @@
 ThreadData::ThreadData(void) 
 {
 	dim1=640,dim2=360;
-	namedWindow("output", CV_WINDOW_NORMAL);
-	setWindowProperty("output", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	//namedWindow("output", CV_WINDOW_NORMAL);
+	//setWindowProperty("output", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 	Thread();
 	Start();
-	base=Mat(dim2,dim1, CV_32F);
-	rectangle(base,Point(0,0),Point(dim1,dim2),Scalar(255,255,255),CV_FILLED);
-	imshow("output",base);
+	//base=Mat(dim2,dim1, CV_32F);
+	//rectangle(base,Point(0,0),Point(dim1,dim2),Scalar(255,255,255),CV_FILLED);
+	//imshow("output",base);
 }
 ThreadData::~ThreadData(void){}
 
@@ -40,6 +40,8 @@ void ThreadData::Run()
 	//wait for receiving message
 	while (::GetMessage( &msg, NULL, 0, 0 ))
 		{
+			ThreadCom_reply(msg);
+			/*
 			//base=Mat(dim2,dim1, CV_32F);
 			//white background
 			rectangle(base,Point(0,0),Point(dim1,dim2),Scalar(255,255,255),CV_FILLED);
@@ -127,11 +129,10 @@ void ThreadData::Run()
 			// get data package from other thread
 			//cout << data->x;
 			// set event to tell other thread to go on
-	
-			ThreadCom_reply(msg);
 			//			if ((char*)msg.lParam == "threadId") {cout << (unsigned long)msg.wParam;} //Display what was received in wParam of the message<br/>
 		
 			if (calibprocess<9 && (data->pupilPos[0]!=Point(0,0) || data->pupilPos[1]!=Point(0,0))) {counter++;}
 		imshow("output",base);
+		*/
 		}
 }

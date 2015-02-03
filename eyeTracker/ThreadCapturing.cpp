@@ -19,7 +19,12 @@ ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice,in
 	data=new dataPackage;
 	strcpy_s(_windowName, windowName);
 	_captureDevice.open(_deviceNumber);
-	namedWindow(_windowName, CV_WINDOW_AUTOSIZE);
+	_captureDevice.set(CV_CAP_PROP_FRAME_WIDTH,1920);
+	_captureDevice.set(CV_CAP_PROP_FRAME_HEIGHT,1280);
+	namedWindow(_windowName, CV_WINDOW_NORMAL);
+	resizeWindow(_windowName,640,480);
+	namedWindow("test", CV_WINDOW_AUTOSIZE);
+	namedWindow("test2", CV_WINDOW_AUTOSIZE);
 }
 
 
@@ -41,6 +46,7 @@ void ThreadCapturing::Run()
     fps framesPerSeconds;
     DetectionBasic det;
     DetectionCircles detCir;
+	cout << _captureDevice.get(CV_CAP_PROP_FRAME_WIDTH)<< endl;	
     while(_running)
     {
         Mat frame;
@@ -79,7 +85,6 @@ void ThreadCapturing::Run()
 		{data->pupilPos[0]=Point(0,0);data->pupilPos[1]=Point(0,0);}
 
         ThreadCom_send(_dataThreadId,(WPARAM)data);
-
         imshow(_windowName, frame); //displays an image in the specified window
         //cout << "fps:" << framesPerSeconds.getFPS() << endl;
         //if(cvWaitKey(1) >= 0);

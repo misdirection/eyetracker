@@ -36,9 +36,9 @@ void DetectionBasic::detectPupils()
 	for (int i=0;i<eyes.size();i++)
 	{
 		// detecting the pupil in the eyeArea-part and adding x&y of beginning of eyeArea
-		if (eyes[i] != Rect(0,0,0,0)) {pupil[i]=detPup.findEyeCenter(_frame,eyes[i]);}
+		if (eyes[i] != Rect(0,0,0,0)) {pupil[i]=detPup.findEyeCenter(_frame,eyes[i],i);}
 	}
-	if (pupil.size()==2)
+	if (pupil[0]!=Point(0,0) && pupil[1]!=Point(0,0) && pupil.size()==2)
 	{
 		if (_distanceOfPupils == 0)
 		{_distanceOfPupils=sqrt(pow((pupil[1].x-pupil[0].x),2)+pow((pupil[1].x-pupil[0].x),2));}
@@ -71,7 +71,7 @@ void DetectionBasic::detectEye()
 	cvtColor( (*_frame)(eyes[i]), _working_frame, CV_BGR2GRAY );
 	equalizeHist( _working_frame, _working_frame );
 	GaussianBlur( _working_frame, _working_frame, cv::Size( 5, 5 ), 1);
-	_eye_cascade.detectMultiScale(_working_frame, _eyes, 1.05, 3, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
+	_eye_cascade.detectMultiScale(_working_frame, _eyes, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(20, 20) );
 	// if an eye is detected inside this area, take this as new eye. otherwise we keep the calculated eye area
 	if (_eyes.size()>0)
 	{
@@ -85,13 +85,13 @@ void DetectionBasic::detectEye()
 
 void DetectionBasic::calculateEyeAreas()
 {
-	eyes[0].x=(int)((double)face.width*0.10)+face.x;       
-	eyes[1].x=(int)((double)face.width * 0.50) +face.x;
+	eyes[0].x=(int)((double)face.width*0.20)+face.x;       
+	eyes[1].x=(int)((double)face.width * 0.60) +face.x;
     for (int i=0;i<2;i++)
 	{
-	eyes[i].y = (int)((double)face.height * 0.25)+face.y;
+	eyes[i].y = (int)((double)face.height * 0.2)+face.y;
     eyes[i].height = (int)((double)face.height * 0.3);
-    eyes[i].width = (int)((double)face.width * 0.4);
+    eyes[i].width = (int)((double)face.width * 0.2);
 	}
 }
 
