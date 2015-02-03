@@ -21,11 +21,12 @@ FileNode Externals::getFaceCascade()
 {
 	return storageFace.getFirstTopLevelNode();
 }
+
+
 FileNode Externals::getEyeCascade()
 {
 	return storageEye.getFirstTopLevelNode();
 }
-
 
 FileStorage Externals::getCalibFile()
 {
