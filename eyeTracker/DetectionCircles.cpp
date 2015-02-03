@@ -154,6 +154,12 @@ void DetectionCircles::calcDistances()
 		}
 		_distOfPoints[2*i]/=_distanceOfPoints_tmp[i].size();
 		_distOfPoints[2*i+1]/=_distanceOfPoints_tmp[i].size();
+		double dist=37.795/((getDistanceBetweenPoints())*(files->getFocalLengths()[0])/1000);
+		cout << "Distance " << dist * 10 <<"cm"<< endl;
+		//double dist1 = (37.795 * 2.44)/(((files->getFocalLengths()[0])*3.79) * getDistanceBetweenPoints());
+		//cout << "Distance " << dist1 <<"mm"<< endl;	
+
+		//cout<< "focal" << files->getFocalLengths()[0] << endl;
 	}
 }
 
@@ -484,5 +490,7 @@ double DetectionCircles::getDistanceBetweenPoints()
 	{
 		return _distanceBetweenPoints;
 	}
-	else {return sqrt(pow(_distOfPoints[0],2)+pow(_distOfPoints[1],2));}
+	else {
+
+		return sqrt(pow(_distOfPoints[0],2)+pow(_distOfPoints[1],2));}
 }

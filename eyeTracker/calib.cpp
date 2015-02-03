@@ -332,7 +332,7 @@ int startCalibration(int m)
 		if( s.flipVertical )    flip( view, view, 0 );
 
 		vector<Point2f> pointBuf;
-
+		Mat test;
 		bool found;
 		switch( s.calibrationPattern ) // Find feature points on the input format
 		{
@@ -341,7 +341,12 @@ int startCalibration(int m)
 				CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE);
 			break;
 		case Settings::CIRCLES_GRID:
-			found = findCirclesGrid( view, s.boardSize, pointBuf );
+			cvtColor(view, test, COLOR_BGR2GRAY);
+			bitwise_not(test,test);
+			equalizeHist(test,test);
+			//imshow("view",test);
+			found = findCirclesGrid( test, s.boardSize, pointBuf, CALIB_CB_SYMMETRIC_GRID + CALIB_CB_CLUSTERING);
+			cout << "points"<<pointBuf<<endl;
 			break;
 		case Settings::ASYMMETRIC_CIRCLES_GRID:
 			found = findCirclesGrid( view, s.boardSize, pointBuf, CALIB_CB_ASYMMETRIC_GRID );
@@ -354,11 +359,12 @@ int startCalibration(int m)
 		if ( found)                // If done with success,
 		{
 			// improve the found corners' coordinate accuracy for chessboard
-			if( s.calibrationPattern == Settings::CHESSBOARD)
+			if( s.calibrationPattern == Settings::CIRCLES_GRID)
 			{
 				Mat viewGray;
 				cvtColor(view, viewGray, COLOR_BGR2GRAY);
-				cornerSubPix( viewGray, pointBuf, Size(11,11),
+				
+				cornerSubPix( viewGray, pointBuf, Size(3,3),
 					Size(-1,-1), TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
 			}
 
@@ -372,6 +378,9 @@ int startCalibration(int m)
 
 			// Draw the corners.
 			drawChessboardCorners( view, s.boardSize, Mat(pointBuf), found );
+			//draw contours
+			
+			
 		}
 
 		//----------------------------- Output Text ------------------------------------------------
@@ -432,7 +441,7 @@ int startCalibration(int m)
 			if(view.empty())
 				continue;
 			remap(view, rview, map1, map2, INTER_LINEAR);
-			//imshow("Image View", rview);
+			imshow("Image View", rview);
 			char c = (char)waitKey();
 			if( c  == ESC_KEY || c == 'q' || c == 'Q' )
 				break;

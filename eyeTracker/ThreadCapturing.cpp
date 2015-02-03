@@ -56,7 +56,7 @@ void ThreadCapturing::Run()
 		circle(frame,*det.getPupilPoint(0), 2, Scalar( 0, 255, 0 ), 1, 8, 0 );
 		circle(frame,*det.getPupilPoint(1), 2, Scalar( 0, 255, 0 ), 1, 8, 0 );
 
-		//for(int x=0;x<(detCir.getCoordsOfcircleMatrix()).size();x++)
+		for(int x=0;x<9;x++)
 		{
 			circle(frame,detCir.getCoordsOfcircleMatrix(x),5, Scalar( 255, 255, 0 ), 2, 8, 0 );
 		}		

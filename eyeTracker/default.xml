@@ -4,16 +4,16 @@
 <!--
  Number of inner corners per a item row and column. (square, circle) 
 -->
-<BoardSize_Width>9</BoardSize_Width>
-<BoardSize_Height>6</BoardSize_Height>
+<BoardSize_Width>3</BoardSize_Width>
+<BoardSize_Height>3</BoardSize_Height>
 <!--
  The size of a square in some user defined metric system (pixel, millimeter)
 -->
-<Square_Size>50</Square_Size>
+<Square_Size>7</Square_Size>
 <!--
  The type of input used for camera calibration. One of: CHESSBOARD CIRCLES_GRID ASYMMETRIC_CIRCLES_GRID 
 -->
-<Calibrate_Pattern>"CHESSBOARD"</Calibrate_Pattern>
+<Calibrate_Pattern>"CIRCLES_GRID"</Calibrate_Pattern>
 <!--
  The input to use for calibration. 
 		To use an input camera -> give the ID of the camera, like "1"
@@ -23,9 +23,9 @@
 -->
 
 
+<Input>"0"</Input>
+<!--<Input>"images/CameraCalibration/VID5/VID5.xml"</Input>
 
-<Input>"images/CameraCalibration/VID5/VID5.xml"</Input>
-<!--<Input>"0"</Input>
 
 
 <!--

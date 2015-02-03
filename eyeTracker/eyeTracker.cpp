@@ -47,11 +47,7 @@ bool setup()
 	if (!files->loadFaceCascade()) {cout << "no haar cascade file for face recognition found\n"; return false;}
 	if (!files->loadEyeCascade()) {cout << "no haar cascade file for eye recognition found\n"; return false;}
 	if (!files->loadCalibFile()){cout << "Could not open the configuration file: \"" << "default.xml" << "\"" << endl; return false;}
-	if (!fs.isOpened())
-	{
-		cout << "Could not open the configuration file: \"" << inputSettingsFile << "\"" << endl;
-		return -1;
-	}
+	
 	return true;
 }
 

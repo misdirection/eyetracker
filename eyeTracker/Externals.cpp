@@ -2,7 +2,7 @@
 #include "eyeTracker.h"
 
 
-Externals::Externals(void)
+Externals::Externals(void):
 	fs("default.xml", FileStorage::READ),
 	storageFace(FileStorage("haarcascade_frontalface_alt2.xml", FileStorage::READ)),
 	storageEye(FileStorage("haarcascade_eye.xml", FileStorage::READ))
@@ -25,14 +25,7 @@ FileNode Externals::getEyeCascade()
 {
 	return storageEye.getFirstTopLevelNode();
 }
-FileNode Externals::getFaceCascade()
-{
-	return storageFace.getFirstTopLevelNode();
-}
-FileNode Externals::getEyeCascade()
-{
-	return storageEye.getFirstTopLevelNode();
-}
+
 
 FileStorage Externals::getCalibFile()
 {
