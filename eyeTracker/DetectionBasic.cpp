@@ -90,8 +90,8 @@ void DetectionBasic::calculateEyeAreas()
 	eyes[1].x=(int)((double)face.width * 0.55) +face.x;
     for (int i=0;i<2;i++)
 	{
-	eyes[i].y = (int)((double)face.height * 0.3)+face.y;
-    eyes[i].height = (int)((double)face.height * 0.2);
+	eyes[i].y = (int)((double)face.height * 0.35)+face.y;
+    eyes[i].height = (int)((double)face.height * 0.15);
     eyes[i].width = (int)((double)face.width * 0.25);
 	}
 }

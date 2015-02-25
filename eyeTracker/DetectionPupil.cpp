@@ -47,12 +47,9 @@ Point DetectionPupil::calcHelper(int leftRight)
 				test.at<uchar>(j, i)=(int)((float)(test.at<uchar>(j, i)-lightest)/(float)(middle-lightest)*255);}
         }
 	}
-	//equalizeHist( test,test);
 	threshold(test,test,0,255,THRESH_BINARY_INV);
 
 // ------------
-	//threshold(test, test,  0, 220, CV_THRESH_BINARY );
-	//bitwise_not( test, test );
 	Canny(test, test, 0, 240, 5);
 	
 	//if (leftRight==0){imshow("test2",test);}

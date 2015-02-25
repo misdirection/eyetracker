@@ -55,8 +55,8 @@ void ThreadCapturing::Run()
         det.detect(&frame);
         detCir.detect(&frame,det.getFaceRect());
         // confirm pupils by checking distance between circleGridCenter and pupils, must be nearly the same as before
-        //stringstream text; text << framesPerSeconds.getFPS();
-        stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
+        stringstream text; text << framesPerSeconds.getFPS();
+        //stringstream text; text << detCir.getRotationAngle(0) << " | " << detCir.getRotationAngle(1);
         putText(frame,text.str(),cvPoint(30,30), FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,0),1,8,false);
         rectangle( frame,*det.getFaceRect(), Scalar( 0, 255, 0 ), 1, 8, 0 );
         rectangle( frame,*det.getEyeRect(0), Scalar( 0, 255, 0 ), 1, 8, 0 );
@@ -75,8 +75,8 @@ void ThreadCapturing::Run()
         data->firstpackage = false;
         data->id=GetCurrentThreadId();
 		if(detCir.getCoordsOfcircleMatrix(5)!=Point(0,0))
-		{data->pupilPos[0] = *det.getPupilPoint(0)-detCir.getCoordsOfcircleMatrix(5)+Point(200,200);
-		data->pupilPos[1] = *det.getPupilPoint(1)-detCir.getCoordsOfcircleMatrix(5)+Point(200,200);}
+		{data->pupilPos[0] = *det.getPupilPoint(0)-detCir.getCoordsOfcircleMatrix(4)+Point(200,200);
+		data->pupilPos[1] = *det.getPupilPoint(1)-detCir.getCoordsOfcircleMatrix(4)+Point(200,200);}
 		else 
 		{
 			data->pupilPos[0]=Point(0,0);data->pupilPos[1]=Point(0,0);

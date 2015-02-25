@@ -3,13 +3,13 @@
 ThreadData::ThreadData(void) 
 {
 	dim1=640,dim2=360;
-	//namedWindow("output", CV_WINDOW_NORMAL);
-	//setWindowProperty("output", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	namedWindow("output", CV_WINDOW_NORMAL);
+	setWindowProperty("output", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 	Thread();
 	Start();
-	//base=Mat(dim2,dim1, CV_32F);
-	//rectangle(base,Point(0,0),Point(dim1,dim2),Scalar(255,255,255),CV_FILLED);
-	//imshow("output",base);
+	base=Mat(dim2,dim1, CV_32F);
+	rectangle(base,Point(0,0),Point(dim1,dim2),Scalar(255,255,255),CV_FILLED);
+	imshow("output",base);
 }
 ThreadData::~ThreadData(void){}
 
@@ -30,6 +30,7 @@ void ThreadData::drawCalibCircle(int cal)
 	circle(base,Point(x,y),dim2/100,Scalar(0,0,0),CV_FILLED);
 }
 
+#define CALIBCIRCLES 25
 
 //main method of the ThreadData, this is where the stuff happens
 void ThreadData::Run()
@@ -41,7 +42,6 @@ void ThreadData::Run()
 	while (::GetMessage( &msg, NULL, 0, 0 ))
 		{
 			ThreadCom_reply(msg);
-			/*
 			//base=Mat(dim2,dim1, CV_32F);
 			//white background
 			rectangle(base,Point(0,0),Point(dim1,dim2),Scalar(255,255,255),CV_FILLED);
@@ -57,13 +57,15 @@ void ThreadData::Run()
 			if (calibprocess>-1 && calibprocess<9 && counter >10)
 			{
 				//calib_tmp[threadNumber][left,right][calibCircle][vectorOfPoints]
-				if (data->pupilPos[0]!=Point(0,0) && calib_tmp[data->id][0][calibprocess].size()<=10) {calib_tmp[data->id][0][calibprocess].push_back(data->pupilPos[0]);}
-				if (data->pupilPos[1]!=Point(0,0) && calib_tmp[data->id][1][calibprocess].size()<=10) {calib_tmp[data->id][1][calibprocess].push_back(data->pupilPos[1]);}
+				if (data->pupilPos[0]!=Point(0,0) && calib_tmp[data->id][0][calibprocess].size()<=CALIBCIRCLES) {calib_tmp[data->id][0][calibprocess].push_back(data->pupilPos[0]);}
+				if (data->pupilPos[1]!=Point(0,0) && calib_tmp[data->id][1][calibprocess].size()<=CALIBCIRCLES) {calib_tmp[data->id][1][calibprocess].push_back(data->pupilPos[1]);}
 				cout << calibprocess << " - - " << calib_tmp[data->id][1][calibprocess].size() << endl;
 				int nextStep=1;
 				for (int i=0;i<receivedThreads.size();i++)
-				{if (calib_tmp[receivedThreads[i]][0][calibprocess].size()<10 || calib_tmp[receivedThreads[i]][1][calibprocess].size()<10) {nextStep=0;}}
-				if (nextStep==1) {calibprocess++;counter=0;}
+				{if (calib_tmp[receivedThreads[i]][0][calibprocess].size()<CALIBCIRCLES || calib_tmp[receivedThreads[i]][1][calibprocess].size()<CALIBCIRCLES) {nextStep=0;}}
+				if (nextStep==1 && calibprocess<9) {calibprocess++;counter=0;}
+				//if (nextStep==1 && calibprocess==0) {calibprocess+=8;counter=0;}
+				//else if (nextStep==1 && calibprocess==8) {calibprocess=9;counter=0;}
 			}
 			if (calibprocess==9)
 			{
@@ -74,7 +76,7 @@ void ThreadData::Run()
 					// ...and each eye...
 					for (int j=0;j<2;j++)
 					{
-						// ...and each process
+						// ...and each calibprocess
 						for (int k=0;k<9;k++)
 						{
 							int x=0,y=0;
@@ -84,23 +86,36 @@ void ThreadData::Run()
 								x+=calib_tmp[receivedThreads[i]][j][k][l].x;
 								y+=calib_tmp[receivedThreads[i]][j][k][l].y;
 							}
+							int x1 = (int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
+							int y1 = (int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
+							x=0;y=0;
+							for (int l=0;l<calib_tmp[receivedThreads[i]][j][k].size();l++)
+							{
+								if (calib_tmp[receivedThreads[i]][j][k][l].x >= x1*0.9 &&  calib_tmp[receivedThreads[i]][j][k][l].x <= x1*1.1 &&
+									calib_tmp[receivedThreads[i]][j][k][l].y >= y1*0.9 &&  calib_tmp[receivedThreads[i]][j][k][l].y <= y1*1.1)
+								{
+								x+=calib_tmp[receivedThreads[i]][j][k][l].x;
+								y+=calib_tmp[receivedThreads[i]][j][k][l].y;
+								}
+							}
 							calib[receivedThreads[i]][j][k].x=(int)((float)x/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
 							calib[receivedThreads[i]][j][k].y=(int)((float)y/(float)(calib_tmp[receivedThreads[i]][j][k].size()));
 						}
+						x1=0;y1=0;
 						x1+=calib[receivedThreads[i]][j][2].x-calib[receivedThreads[i]][j][1].x;
 						x1+=calib[receivedThreads[i]][j][1].x-calib[receivedThreads[i]][j][0].x;
 						x1+=calib[receivedThreads[i]][j][5].x-calib[receivedThreads[i]][j][4].x;
 						x1+=calib[receivedThreads[i]][j][4].x-calib[receivedThreads[i]][j][3].x;
 						x1+=calib[receivedThreads[i]][j][8].x-calib[receivedThreads[i]][j][7].x;
 						x1+=calib[receivedThreads[i]][j][7].x-calib[receivedThreads[i]][j][6].x;
-						calib2[receivedThreads[i]][j].x=x1/6;
+						calib2[receivedThreads[i]][j].x=100*x1/6;
 						y1+=calib[receivedThreads[i]][j][6].y-calib[receivedThreads[i]][j][3].y;
 						y1+=calib[receivedThreads[i]][j][3].y-calib[receivedThreads[i]][j][0].y;
 						y1+=calib[receivedThreads[i]][j][7].y-calib[receivedThreads[i]][j][4].y;
 						y1+=calib[receivedThreads[i]][j][4].y-calib[receivedThreads[i]][j][1].y;
 						y1+=calib[receivedThreads[i]][j][8].y-calib[receivedThreads[i]][j][5].y;
 						y1+=calib[receivedThreads[i]][j][5].y-calib[receivedThreads[i]][j][2].y;
-						calib2[receivedThreads[i]][j].y=y1/6;						
+						calib2[receivedThreads[i]][j].y=100*y1/6;						
 					}
 				}
 				calibprocess++;
@@ -114,13 +129,15 @@ void ThreadData::Run()
 					if (data->pupilPos[m]!=Point(0,0))
 					{
 					int point=data->pupilPos[m].x-calib[data->id][m][0].x;
-					int difBetweenFirstNLast=calib2[data->id][m].x;
-					float percentage = (((float)point/(float)difBetweenFirstNLast));
-					x = ((int)(dim1*percentage)+x)/2;
+					int difBetweenFirstNLast=calib2[data->id][m].x*2;
+					//int difBetweenFirstNLast=calib[data->id][m][8].x-calib[data->id][m][0].x;
+					float percentage = (((float)point/((float)difBetweenFirstNLast/100.0)));
+					x = ((int)(dim1*percentage));
 					point=data->pupilPos[m].y-calib[data->id][m][0].y;
-					difBetweenFirstNLast=calib2[data->id][m].y;
-					percentage = (((float)point/(float)difBetweenFirstNLast));
-					y = ((int)(dim2*percentage)+y)/2;
+					difBetweenFirstNLast=calib2[data->id][m].y*2;
+					//difBetweenFirstNLast=calib[data->id][m][8].y-calib[data->id][m][0].y;
+					percentage = (((float)point/((float)difBetweenFirstNLast/100.0)));
+					y = ((int)(dim2*percentage));
 					}
 				}
 			if (x>=0 && y>=0)
@@ -133,6 +150,5 @@ void ThreadData::Run()
 		
 			if (calibprocess<9 && (data->pupilPos[0]!=Point(0,0) || data->pupilPos[1]!=Point(0,0))) {counter++;}
 		imshow("output",base);
-		*/
 		}
 }
