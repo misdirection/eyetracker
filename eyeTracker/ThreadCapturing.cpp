@@ -18,7 +18,9 @@ ThreadCapturing::ThreadCapturing(LPSTR windowName, VideoCapture captureDevice,in
 {
 	data=new dataPackage;
 	strcpy_s(_windowName, windowName);
-	_captureDevice.open(_deviceNumber);
+	// das alte
+	_captureDevice.open("Video 1.mp4");
+	//_captureDevice.open(_deviceNumber);
 	_captureDevice.set(CV_CAP_PROP_FRAME_WIDTH,1920);
 	_captureDevice.set(CV_CAP_PROP_FRAME_HEIGHT,1280);
 	namedWindow(_windowName, CV_WINDOW_NORMAL);
