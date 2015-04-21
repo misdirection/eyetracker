@@ -46,6 +46,7 @@ bool setup()
 
 void switchDevices(int number)
 {
+
 	if (number<devices.size())
 	{
 		if (devices[number]==nullptr)
@@ -53,7 +54,7 @@ void switchDevices(int number)
 			stringstream text;
 			text<< "web cam device " << number; 
 			string str1= text.str();
-			devices[number]=new ThreadCapturing(const_cast<char *>(str1.c_str()),*captureDevice, number,datas->getThreadId());
+			devices[number]=new ThreadCapturing(const_cast<char *>(str1.c_str()),*captureDevice, number,datas->getThreadId(),false,false);
 			devices[number]->Start();
 		}
 		else
@@ -63,6 +64,46 @@ void switchDevices(int number)
 			devices[number]=nullptr;
 		}
 	}
+
+	if (number >= devices.size() && number <devices.size()*2 )
+	{
+		int num = number - devices.size();
+		if (devices[num]==nullptr)
+		{
+			stringstream text;
+			text<< "web cam device " << num; 
+			string str1= text.str();
+			devices[num]=new ThreadCapturing(const_cast<char *>(str1.c_str()),*captureDevice, num,datas->getThreadId(),true,false);
+			devices[num]->Start();
+		}
+		else
+		{
+			devices[num]->Stop();
+			delete devices[num];
+			devices[num]=nullptr;
+		}
+	}
+	
+	if (number == devices.size()*2)
+	{
+		int num = number - devices.size();
+		if (devices[num]==nullptr)
+		{
+			stringstream text;
+			text<< "web cam device " << num; 
+			string str1= text.str();
+			devices[num]=new ThreadCapturing(const_cast<char *>(str1.c_str()),*captureDevice, num,datas->getThreadId(),false,true);
+			devices[num]->Start();
+		}
+		else
+		{
+			devices[num]->Stop();
+			delete devices[num];
+			devices[num]=nullptr;
+		}
+	}
+
+
 }
 
 
@@ -73,13 +114,16 @@ int main( int argc, const char** argv )
 
 	if (devices.size() > 0) 
 	{
-		cout << "Available devices: " << devices.size() << endl << "Press number between 0 and " << devices.size()-1 << " to start first camera.";
+		cout << "Available devices: " << devices.size() << endl << "Press a number between 0 and " << devices.size()-1 << " to start first camera." << endl << "Press number between " << devices.size() << " and " << devices.size()*2-1 << " to start camera with gazeprojection." <<endl;
+		cout << "Press " << devices.size()*2 << " to open video file instead of camera!" << endl;
 		// until you select an available device
 		int number=-1;
-		while(number<0 || number >=devices.size() )
+		while(number<0 || number >=devices.size()*2+1 )
 		{
 			while(!_kbhit());
-			string temp; temp= _getch(); number = atoi(temp.c_str());
+			string temp; 
+			temp= _getch(); 
+			number = atoi(temp.c_str());
 			if (number == 0 && !(temp=="0")) {number=-1;}
 		}
 		// activate the selected device

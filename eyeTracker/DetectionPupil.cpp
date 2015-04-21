@@ -285,7 +285,7 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 			row[x] = (255 - row[x]);
 		}
 	}
-	//-- Run the algorithm!
+	//-- the algorithm!
 	Mat outSum = cv::Mat::zeros(_working_frame.rows,_working_frame.cols,CV_64F);
 	// for each possible center
 	// printf("Eye Size: %ix%i\n",outSum.cols,outSum.rows);

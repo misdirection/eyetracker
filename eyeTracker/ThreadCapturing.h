@@ -8,7 +8,7 @@ class ThreadCapturing : public Thread{
 public:
 	ThreadCapturing(void);
 	~ThreadCapturing(void);
-	ThreadCapturing(LPSTR, VideoCapture, int, DWORD);
+	ThreadCapturing(LPSTR, VideoCapture, int, DWORD, bool,bool);
 	void Run();
 	
 	
@@ -17,4 +17,5 @@ private:
 	VideoCapture _captureDevice;
 	DWORD _dataThreadId;
 	int _deviceNumber;
+	bool gazeTracking;
 };

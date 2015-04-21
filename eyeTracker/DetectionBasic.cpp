@@ -71,7 +71,7 @@ void DetectionBasic::detectEye()
 	cvtColor( (*_frame)(eyes[i]), _working_frame, CV_BGR2GRAY );
 	GaussianBlur( _working_frame, _working_frame, cv::Size( 5, 5 ), 1);
 	_eye_cascade.detectMultiScale(_working_frame, _eyes, 1.1, 3, 0|CV_HAAR_SCALE_IMAGE, Size(20, 20) );
-	if (i==1){imshow("test",_working_frame);}
+	//if (i==1){imshow("test",_working_frame);}
 
 	// if an eye is detected inside this area, take this as new eye. otherwise we keep the calculated eye area
 	if (_eyes.size()>0)
