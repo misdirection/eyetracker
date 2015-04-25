@@ -1,8 +1,12 @@
 #include "DetectionPupil.h"
 
 
-DetectionPupil::DetectionPupil(void) : _helper(0,0)
+DetectionPupil::DetectionPupil(void) : _helper(0,0),first(0)
 {
+	firstMat.push_back(Mat());
+	firstMat.push_back(Mat());
+	firstPup.push_back(Point(0,0));
+	firstPup.push_back(Point(0,0));
 }
 
 
@@ -11,48 +15,57 @@ DetectionPupil::~DetectionPupil(void)
 }
 
 
-Point DetectionPupil::calcHelper(int leftRight)
+Point DetectionPupil::calcHelper(Mat test, int leftRight)
 {
-	Rect rectForHelper(_working_frame.cols*0.15,_working_frame.rows*0.15,_working_frame.cols*0.7,_working_frame.rows*0.7);
-	vector<Point> pointsForHelper;
-	Mat test =_working_frame.clone();
-	test(rectForHelper);
-// -----------
-		int darkest=0;
+	//Rect rectForHelper(_working_frame.cols*0.15,_working_frame.rows*0.15,_working_frame.cols*0.7,_working_frame.rows*0.7);
+	//vector<Point> pointsForHelper;
+	//Mat test =_working_frame.clone();
+	//test(rectForHelper);
+	// -----------
+	threshold(test,test,2,255,THRESH_TOZERO);
+	resize(test,test,Size(test.cols*10,test.rows*10));
+	//GaussianBlur(test,test,Size(5,5),1);
+	advThreshold(test);
+	/*
+	int darkest=0;
+
 	Point darkestPoint;
-    for (int i = 0; i < test.cols; i++ ) {
-        for (int j = 0; j < test.rows; j++) {
-            if (test.at<uchar>(j, i) > darkest) {   
-                darkest=test.at<uchar>(j, i);
-				darkestPoint=Point(i,j);
-            }
-        }
+	for (int i = 0; i < test.cols; i++ ) {
+	for (int j = 0; j < test.rows; j++) {
+	if (test.at<uchar>(j, i) > darkest) {   
+	darkest=test.at<uchar>(j, i);
+	darkestPoint=Point(i,j);
+	}
+	}
 	}
 	int lightest=255;
 	Point lightestPoint;
-    for (int i = 0; i < test.cols; i++ ) {
-        for (int j = 0; j < test.rows; j++) {
-            if (test.at<uchar>(j, i) < lightest) {   
-                lightest=test.at<uchar>(j, i);
-				lightestPoint=Point(i,j);
-            }
-        }
+	for (int i = 0; i < test.cols; i++ ) {
+	for (int j = 0; j < test.rows; j++) {
+	if (test.at<uchar>(j, i) < lightest) {   
+	lightest=test.at<uchar>(j, i);
+	lightestPoint=Point(i,j);
+	}
+	}
 	}
 	int middle=(darkest-lightest)/2+lightest; // bei 100 bis 200 --> 150
-//		if (leftRight==0){imshow("test",test);}
-    for (int i = 0; i < test.cols; i++ ) {
-        for (int j = 0; j < test.rows; j++) {
-			if (test.at<uchar>(j, i) >= middle) {test.at<uchar>(j, i)=255;} 
-			else {
-				test.at<uchar>(j, i)=(int)((float)(test.at<uchar>(j, i)-lightest)/(float)(middle-lightest)*255);}
-        }
+	//		if (leftRight==0){imshow("test",test);}
+	for (int i = 0; i < test.cols; i++ ) {
+	for (int j = 0; j < test.rows; j++) {
+	if (test.at<uchar>(j, i) >= middle) {test.at<uchar>(j, i)=255;} 
+	else {
+	test.at<uchar>(j, i)=(int)((float)(test.at<uchar>(j, i)-lightest)/(float)(middle-lightest)*255);}
 	}
-	threshold(test,test,0,255,THRESH_BINARY_INV);
+	}
+	*/
+	if (leftRight==0){imshow("test",test);}
+	threshold(test,test,15,255,THRESH_BINARY_INV);
+	if (leftRight==0){imshow("test2",test);}
+	//-----------
+	Canny(test, test, 10, 255, 3);
 
-// ------------
-	Canny(test, test, 0, 240, 5);
-	
-	//if (leftRight==0){imshow("test2",test);}
+
+
 	vector<vector<Point>> contours;
 	vector<Point> approx,circles;
 
@@ -65,66 +78,179 @@ Point DetectionPupil::calcHelper(int leftRight)
 		// Approximate contour with accuracy proportional
 		// to the contour perimeter
 		cv::approxPolyDP(Mat(contours[i]),approx,arcLength(Mat(contours[i]), true) * 0.02,true);
-		if (approx.size() > 3)
+		if (approx.size() >	5)
+		{
+			// Detect and label circles
+			double area = contourArea(contours[i]);
+			cv::Rect r = boundingRect(contours[i]);
+			if ((r.width/2)>radius) 
 			{
-		        // Detect and label circles
-		        double area = contourArea(contours[i]);
-		        cv::Rect r = boundingRect(contours[i]);
-		        if ((r.width/2)>radius) 
-				{
 				radius = r.width / 2;
 				// check if circle already in vector
-				pupilCenter=Point(r.x+r.width/2,r.y+r.height/2);
+				if (pupilCenter.y<r.y)
+				{
+					pupilCenter=Point(r.x+r.width/2,r.y+r.height/2);
+					pupilCenter.x/=10;
+					pupilCenter.y/=10;
+				}
 				//int x = r.x+r.width/2;
 				//int y = r.y+r.height/2;
 				//circle(test,Point(x,y),radius,Scalar(255,255,0));
-				}
 			}
+		}
 	}
 	return pupilCenter;
 }
-	
 
-	//for (int i = 0; i < contours.size(); i++)
-	//{
- //       double area = contourArea(contours[i]);
- //       cv::Rect r = boundingRect(contours[i]);
-	//	pointsForHelper.push_back(Point(r.x+rectForHelper.x,r.y+=rectForHelper.y));
-	//}
-	//if(pointsForHelper.size()>0)
-	//{
-	//int x=0,y=0,x2=0,y2=0,count=0;
-	//for (int p=0;p<pointsForHelper.size();p++)
-	//{
-	//	x+=pointsForHelper[p].x;y+=pointsForHelper[p].y;
-	//}
-	//x/=pointsForHelper.size();y/=pointsForHelper.size();
-	//for (int p=0;p<pointsForHelper.size();p++)
-	//{
-	//	if (nearlyEqual(pointsForHelper[p].x,x,40) && nearlyEqual(pointsForHelper[p].y,y,40))
-	//	{
-	//		x2+=pointsForHelper[p].x;y2+=pointsForHelper[p].y;
-	//		count++;
-	//	}
-	//}
-	//pointsForHelper.clear();
-	//if (count>0) {_helper=Point(x2/count+_eyeRect.x,y2/count+_eyeRect.y);return true;}
-	//}
+
+//for (int i = 0; i < contours.size(); i++)
+//{
+//       double area = contourArea(contours[i]);
+//       cv::Rect r = boundingRect(contours[i]);
+//	pointsForHelper.push_back(Point(r.x+rectForHelper.x,r.y+=rectForHelper.y));
+//}
+//if(pointsForHelper.size()>0)
+//{
+//int x=0,y=0,x2=0,y2=0,count=0;
+//for (int p=0;p<pointsForHelper.size();p++)
+//{
+//	x+=pointsForHelper[p].x;y+=pointsForHelper[p].y;
+//}
+//x/=pointsForHelper.size();y/=pointsForHelper.size();
+//for (int p=0;p<pointsForHelper.size();p++)
+//{
+//	if (nearlyEqual(pointsForHelper[p].x,x,40) && nearlyEqual(pointsForHelper[p].y,y,40))
+//	{
+//		x2+=pointsForHelper[p].x;y2+=pointsForHelper[p].y;
+//		count++;
+//	}
+//}
+//pointsForHelper.clear();
+//if (count>0) {_helper=Point(x2/count+_eyeRect.x,y2/count+_eyeRect.y);return true;}
+//}
+
+void DetectionPupil::advThreshold(Mat test)
+{
+
+	//	Rect rectForHelper(_working_frame.cols*0.15,_working_frame.rows*0.15,_working_frame.cols*0.7,_working_frame.rows*0.7);
+	//	vector<Point> pointsForHelper;
+	//	Mat test =_working_frame.clone();
+	//	test(rectForHelper);
+	//// -----------
+	int darkest=0;
+	Point darkestPoint;
+	for (int i = 0; i < test.cols; i++ ) {
+		for (int j = 0; j < test.rows; j++) {
+			if (test.at<uchar>(j, i) > darkest) {   
+				darkest=test.at<uchar>(j, i);
+				darkestPoint=Point(i,j);
+			}
+		}
+	}
+	int lightest=255;
+	Point lightestPoint;
+	for (int i = 0; i < test.cols; i++ ) {
+		for (int j = 0; j < test.rows; j++) {
+			if (test.at<uchar>(j, i) < lightest) {   
+				lightest=test.at<uchar>(j, i);
+				lightestPoint=Point(i,j);
+			}
+		}
+	}
+	int middle=(darkest-lightest)/2+lightest; // bei 100 bis 200 --> 150
+	//		if (leftRight==0){imshow("test",test);}
+	for (int i = 0; i < test.cols; i++ ) {
+		for (int j = 0; j < test.rows; j++) {
+			if (test.at<uchar>(j, i) >= middle) {test.at<uchar>(j, i)=255;} 
+			else {
+				test.at<uchar>(j, i)=(int)((float)(test.at<uchar>(j, i)-lightest)/(float)(middle-lightest)*255);}
+		}
+	}
+}
 
 
 
 Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
-	_eyeRect=eyeRect;
+	Point pupilCenter(0,0);
+	_eyeRect=Rect(eyeRect.x-eyeRect.width,eyeRect.y,eyeRect.width*3,eyeRect.height*2);
+	cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
+	advThreshold(_working_frame);
+
+
+
+	//threshold(_working_frame,_working_frame,40,255,THRESH_TOZERO);
+	//threshold(_working_frame,_working_frame,40,255,THRESH_BINARY);
+
+	//
+	//if (leftRight==1){imshow("test2",_working_frame);}
+	if (first==0)
+	{
+		//firstMat[leftRight] = _working_frame.clone();
+		_working_frame.copyTo(firstMat[leftRight]);
+		if (leftRight==1) {first=1;}
+		if (firstPup[leftRight]!=Point(0,0)) {return firstPup[leftRight];}
+
+	}
+
+	else
+	{
+		for (int i = 0; i < _working_frame.cols; i++ ) {
+			for (int j = 0; j < _working_frame.rows; j++) {
+				int test1 =_working_frame.at<uchar>(j, i);
+				int test2 =firstMat[leftRight].at<uchar>(j, i);
+				_working_frame.at<uchar>(j, i)=(_working_frame.at<uchar>(j, i)+firstMat[leftRight].at<uchar>(j, i))/2;
+			}
+		}
+
+		//threshold(_working_frame,_working_frame,20,255,THRESH_BINARY);
+		//Canny(_working_frame, _working_frame, 0, 255, 3);
+		//if (leftRight==1){imshow("test",_working_frame);}
+		pupilCenter=calcHelper(_working_frame,leftRight);
+		pupilCenter.x+=_eyeRect.x;
+		pupilCenter.y+=_eyeRect.y;
+		firstPup[leftRight]=pupilCenter;
+		if (leftRight==1) {first=0;}
+	}
+	//if (leftRight==1){imshow("test",(*frame)(_eyeRect));}
+	return pupilCenter;	
+
+
+	int darkest=0;
+	Point darkestPoint;
+	for (int i = 0; i < _working_frame.cols; i++ ) {
+		for (int j = 0; j < _working_frame.rows; j++) {
+			if (_working_frame.at<uchar>(j, i) > darkest) {   
+				darkest=_working_frame.at<uchar>(j, i);
+				darkestPoint=Point(i,j);
+			}
+		}
+	}
+	Point point1(0,0);
+
+	return point1;
+	//cout << darkestPoint.x;
+	//cout << darkestPoint.y;
+	//cout << endl;
+	//system("pause");
+	/*	Rect test1=Rect(darkestPoint.x-5,darkestPoint.y-5,10,10);
+	cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
+	_working_frame=_working_frame(test1);
+	*/
+
+	//if (leftRight==1){imshow("test2",_working_frame);}
 	//_working_frame=(*frame)(_eyeRect);
 	//vector<Mat> bgr_planes;
-	 //split( _working_frame, bgr_planes );
-	 //if (leftRight==0){imshow("test",bgr_planes[2]);}
-	 //if (leftRight==0){imshow("test2", bgr_planes[1]);}
-	cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
+	//split( _working_frame, bgr_planes );
+	//if (leftRight==0){imshow("test",bgr_planes[2]);}
+	//if (leftRight==0){imshow("test2", bgr_planes[1]);}
+	//cvtColor((*frame)(_eyeRect), _working_frame, CV_BGR2GRAY );
 	//equalizeHist( _working_frame, _working_frame );
+	//if (leftRight==1){imshow("test",_working_frame);}
+	/*
 	Point point1=calcHelper(leftRight);
 	point1.x+=_eyeRect.x;point1.y+=_eyeRect.y;
 	return point1;
+	*/
 	//if (calcHelper(leftRight) != Point(0,0)) 
 	//{
 	//	_eyeRect.x=_helper.x-0.3*eyeRect.width;
@@ -142,23 +268,23 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	//bitwise_not(test2,test2);
 	//int darkest=0;
 	//Point darkestPoint;
- //   for (int i = 0; i < test2.cols; i++ ) {
- //       for (int j = 0; j < test2.rows; j++) {
- //           if (test2.at<uchar>(j, i) > darkest) {   
- //               darkest=test2.at<uchar>(j, i);
+	//   for (int i = 0; i < test2.cols; i++ ) {
+	//       for (int j = 0; j < test2.rows; j++) {
+	//           if (test2.at<uchar>(j, i) > darkest) {   
+	//               darkest=test2.at<uchar>(j, i);
 	//			darkestPoint=Point(i,j);
- //           }
- //       }
+	//           }
+	//       }
 	//}
 	//int lightest=255;
 	//Point lightestPoint;
- //   for (int i = 0; i < test2.cols; i++ ) {
- //       for (int j = 0; j < test2.rows; j++) {
- //           if (test2.at<uchar>(j, i) < lightest) {   
- //               lightest=test2.at<uchar>(j, i);
+	//   for (int i = 0; i < test2.cols; i++ ) {
+	//       for (int j = 0; j < test2.rows; j++) {
+	//           if (test2.at<uchar>(j, i) < lightest) {   
+	//               lightest=test2.at<uchar>(j, i);
 	//			lightestPoint=Point(i,j);
- //           }
- //       }
+	//           }
+	//       }
 	//}
 	//threshold(test2,test2,lightest+20,darkest-20,THRESH_BINARY);
 	//equalizeHist( test2,test2);
@@ -169,20 +295,20 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	////bitwise_not(test2,test2);
 	//
 	//for (int i = 0; i < test.cols; i++ ) {
- //       for (int j = 0; j < test.rows; j++) {
+	//       for (int j = 0; j < test.rows; j++) {
 	//		if (test2.at<uchar>(j, i) >128)
 	//		{test.at<uchar>(j, i)=(test.at<uchar>(j, i)+test2.at<uchar>(j, i))/2;}
- //       }
+	//       }
 	//}
 	//_working_frame=test.clone();
 	//morphologyEx(test2,test2,4,cv::getStructuringElement(cv::MORPH_RECT,cv::Size(3,3)));
 	//Canny(test2, test2, 0, 255, 3);
-    /*for (int i = 0; i < test2.cols; i++ ) {
-        for (int j = 0; j < test2.rows; j++) {
-            if (test2.at<uchar>(j, i) == darkest) {   
-                circle(test2,Point(i,j),3,Scalar(255,0,0));
-            }
-        }
+	/*for (int i = 0; i < test2.cols; i++ ) {
+	for (int j = 0; j < test2.rows; j++) {
+	if (test2.at<uchar>(j, i) == darkest) {   
+	circle(test2,Point(i,j),3,Scalar(255,0,0));
+	}
+	}
 	}*/
 
 
@@ -192,7 +318,7 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	//equalizeHist( test2,test2);
 	//adaptiveThreshold(test2,test2,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,11,3);
 	//adaptiveThreshold(test2,test2,255,ADAPTIVE_THRESH_GAUSSIAN_C,\
- //           THRESH_BINARY,11,5);
+	//           THRESH_BINARY,11,5);
 	////bitwise_not(test2,test2);
 	////if (leftRight==0){imshow("test",test2);}
 	//medianBlur(test2,test2,5);
@@ -202,19 +328,19 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	////if (leftRight==0){imshow("test2",test2);}
 	//vector<vector<Point>> contours;
 	//vector<Point> approx;
- //   findContours( test2, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE );
+	//   findContours( test2, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE );
 	//for (int i = 0; i < contours.size(); i++)
 	//{
- //   // Approximate contour with accuracy proportional
- //   // to the contour perimeter
- //   cv::approxPolyDP(Mat(contours[i]),approx,arcLength(Mat(contours[i]), true) * 0.02,true);
+	//   // Approximate contour with accuracy proportional
+	//   // to the contour perimeter
+	//   cv::approxPolyDP(Mat(contours[i]),approx,arcLength(Mat(contours[i]), true) * 0.02,true);
 
 	//if (approx.size() > 20)
 	//{
- //       // Detect and label circles
- //       double area = contourArea(contours[i]);
- //       cv::Rect r = boundingRect(contours[i]);
- //       int radius = r.width / 2;
+	//       // Detect and label circles
+	//       double area = contourArea(contours[i]);
+	//       cv::Rect r = boundingRect(contours[i]);
+	//       int radius = r.width / 2;
 	//	// check if circle already in vector
 	//		int x = r.x+r.width/2;
 	//		int y = r.y+r.height/2;
@@ -222,10 +348,10 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	//}
 	//}
 	//if (leftRight==0){imshow("test",test);}
-	
-	
 
-	
+
+
+
 	//vector<Mat> bgr_planes;
 	//split( test, bgr_planes );
 	//bitwise_not(test,test2);
@@ -238,11 +364,11 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 	//Canny(test, test2, 255, 255, 3);
 	//vector<vector<Point>> contours;
 	//vector<Point> approx,circles;
- //   findContours( test2, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE );
+	//   findContours( test2, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE );
 	//for (int i = 0; i < contours.size(); i++)
 	//{
- //       double area = contourArea(contours[i]);
- //       cv::Rect r = boundingRect(contours[i]);
+	//       double area = contourArea(contours[i]);
+	//       cv::Rect r = boundingRect(contours[i]);
 	//	rectangle(test,r,Scalar(255,0,0));
 	//}
 	//
@@ -274,7 +400,7 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 			}
 		}
 	}
-	
+
 	//imshow(debugWindow,gradientX);
 	//-- Create a blurred and inverted image for weighting
 	Mat weight;
@@ -285,7 +411,7 @@ Point DetectionPupil::findEyeCenter(Mat* frame, Rect eyeRect,int leftRight) {
 			row[x] = (255 - row[x]);
 		}
 	}
-	//-- the algorithm!
+	//-- Run the algorithm!
 	Mat outSum = cv::Mat::zeros(_working_frame.rows,_working_frame.cols,CV_64F);
 	// for each possible center
 	// printf("Eye Size: %ix%i\n",outSum.cols,outSum.rows);

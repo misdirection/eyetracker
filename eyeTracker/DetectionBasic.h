@@ -10,6 +10,8 @@ public:
 	DetectionBasic(void);
 	~DetectionBasic(void);
 
+	int detectEye1(Mat&,vector<Mat>&,vector<Rect>&);  // Function to detect user's face and eye
+	void trackEye1(Mat&,vector<Mat>&,vector<Rect>&); // Function to track user's eye given its template
 	void detect(Mat*); // basic execution of the instance for all detections here
 	bool detectFace(); // resize and detect the face
 	void calculateEyeAreas(); // area where the eye can only be
@@ -27,6 +29,9 @@ public:
 	bool nearlyEqual(int,int,int);
 	// confirm pupils after getting circlesGrid
 private:
+    vector<Mat> eye_tpl;  // The eye template
+    vector<Rect> eye_bb;  // The eye bounding box
+
 	Mat* _frame; 
 	Mat _working_frame;
 	Rect face;

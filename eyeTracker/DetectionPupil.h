@@ -1,6 +1,7 @@
 #pragma once
 #include "eyeTracker.h" // access of extern global Externals
 #include <queue>
+#include "opencv2/opencv.hpp"
 
 class DetectionPupil
 {
@@ -9,6 +10,7 @@ public:
 	~DetectionPupil(void);
 
 	Point findEyeCenter(Mat*,Rect,int);
+	void advThreshold(Mat);
 	Point detect(Mat);
 	void scaleToFastSize(const Mat&,Mat&);
 	Mat floodKillEdges(Mat&);
@@ -20,11 +22,14 @@ public:
 	Mat matrixMagnitude(const Mat&, const Mat&);
 	double computeDynamicThreshold(const Mat&, double);
 
-	Point calcHelper(int);
+	Point calcHelper(Mat,int);
 	bool nearlyEqual(int,int,int);
 
 private:
+	int first;
 	Mat _working_frame;
+	vector<Mat> firstMat;
+	vector<Point> firstPup;
 
 	Point _helper;
 	Rect _eyeRect;
